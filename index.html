@@ -2522,20 +2522,133 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Dashed guide tethers from angle pockets to lane entries
+                // Subtle curved guide tethers for non-active lanes
                 for (let k = 0; k < 8; k++) {
-                    const m = geo.laneMeta[k];
-                    const isAct = k === activeLane;
+                    if (k === activeLane && state.mode !== 'START') continue;
+                    const curve = computeLaneAimBezier(geo, k);
                     ctx.save();
                     ctx.beginPath();
-                    ctx.moveTo(m.sectorPt.x, m.sectorPt.y);
-                    ctx.lineTo(m.innerMid.x, m.innerMid.y);
-                    ctx.strokeStyle = isAct ? 'rgba(255, 230, 0, 0.55)' : 'rgba(0, 243, 255, 0.16)';
-                    ctx.lineWidth = isAct ? 1.8 : 1;
-                    ctx.setLineDash([4, 4]);
+                    ctx.moveTo(curve.p0.x, curve.p0.y);
+                    ctx.bezierCurveTo(
+                        curve.p1.x, curve.p1.y,
+                        curve.p2.x, curve.p2.y,
+                        curve.p3.x, curve.p3.y
+                    );
+                    ctx.strokeStyle = 'rgba(0, 243, 255, 0.13)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 5]);
                     ctx.stroke();
                     ctx.restore();
                 }
+            }
+
+            /**
+             * Compute exact Cubic Bezier (P0 -> P1 -> P2 -> P3) from a lane's inner rim
+             * directly into its corresponding angle sector along the angle's interior bisector.
+             */
+            function computeLaneAimBezier(geo, laneIdx) {
+                const m = geo.laneMeta[laneIdx];
+                const V = m.center;
+                const bx = Math.cos(m.midAngle);
+                const by = Math.sin(m.midAngle);
+
+                // P0: midpoint of the lane's inner rim segment
+                const p0 = { x: m.innerMid.x, y: m.innerMid.y };
+
+                // P3: outer edge of the target angle's interior arc along its exact bisector
+                const targetRadius = geo.R * 0.088;
+                const p3 = {
+                    x: V.x + bx * targetRadius,
+                    y: V.y + by * targetRadius
+                };
+
+                // P1: extend inward from P0 along the lane's inward radial vector (~28% of P0->P3, clamped)
+                const p0Len = Math.hypot(p0.x, p0.y) || 1;
+                const inX = -p0.x / p0Len;
+                const inY = -p0.y / p0Len;
+                const dist03 = Math.hypot(p3.x - p0.x, p3.y - p0.y);
+                const p1Dist = Math.max(geo.R * 0.07, Math.min(geo.R * 0.18, dist03 * 0.28));
+                const p1 = {
+                    x: p0.x + inX * p1Dist,
+                    y: p0.y + inY * p1Dist
+                };
+
+                // P2: extend outward from P3 along the angle's OWN interior bisector (28-42px scaled)
+                // so the final approach P2 -> P3 points straight down the bisector into vertex V
+                const approachDist = Math.max(26, Math.min(44, geo.R * 0.145));
+                const p2 = {
+                    x: p3.x + bx * approachDist,
+                    y: p3.y + by * approachDist
+                };
+
+                return { m, V, p0, p1, p2, p3, targetRadius };
+            }
+
+            /**
+             * Draw the pulsing aimed angle wedge, glowing animated Cubic Bezier aiming line,
+             * and sharp arrowhead pointing straight into the targeted angle's vertex.
+             */
+            function drawAimedAngleGuide(geo, laneIdx) {
+                // Do not draw aiming line or yellow wedge when hovering over the ANCHOR lane
+                if (laneIdx === state.anchorLane) return;
+
+                const { m, V, p0, p1, p2, p3 } = computeLaneAimBezier(geo, laneIdx);
+                const pulse = 0.5 + 0.5 * Math.sin(state.time * 7.5);
+                const arcR = geo.R * 0.082;
+
+                ctx.save();
+
+                // 1. Subtle pulsing translucent yellow wedge & arc inside ONLY the aimed angle sector
+                ctx.beginPath();
+                ctx.moveTo(V.x, V.y);
+                ctx.arc(V.x, V.y, arcR, m.start, m.end, false);
+                ctx.closePath();
+                ctx.fillStyle = `rgba(255, 230, 0, ${0.14 + pulse * 0.11})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(V.x, V.y, arcR, m.start, m.end, false);
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 2.4;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 10 + pulse * 6;
+                ctx.stroke();
+
+                // 2. Glowing neon-yellow dotted/dashed Cubic Bezier curve with marching-ants flow
+                ctx.beginPath();
+                ctx.moveTo(p0.x, p0.y);
+                ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 2.4;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([4, 6]);
+                ctx.lineDashOffset = -state.time * 28;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 12;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 3. Sharp glowing yellow arrowhead at P3 oriented along exact tangent (P3 - P2) into vertex V
+                const arrowAng = Math.atan2(p3.y - p2.y, p3.x - p2.x);
+                const headLen = Math.max(7.5, Math.min(12, geo.R * 0.038));
+                const headHalfW = headLen * 0.56;
+
+                ctx.save();
+                ctx.translate(p3.x, p3.y);
+                ctx.rotate(arrowAng);
+                ctx.beginPath();
+                ctx.moveTo(2, 0);
+                ctx.lineTo(-headLen, -headHalfW);
+                ctx.lineTo(-headLen * 0.68, 0);
+                ctx.lineTo(-headLen, headHalfW);
+                ctx.closePath();
+                ctx.fillStyle = '#ffe600';
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 14;
+                ctx.fill();
+                ctx.restore();
+
+                ctx.restore();
             }
 
             function drawParallelChevrons(x, y, size) {
@@ -3604,6 +3717,11 @@
                     drawParallelDiagram(geo);
 
                     if (state.mode !== 'START') {
+                        // Draw curved aiming guide & targeted angle wedge during active play
+                        if (state.mode === 'PLAYING') {
+                            drawAimedAngleGuide(geo, state.activeLane % 8);
+                        }
+
                         drawAngleHighlight(
                             geo,
                             state.anchorLane,
