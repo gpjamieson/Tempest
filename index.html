@@ -1,0 +1,3698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRANSVERSAL TEMPEST — Parallel Lines & Angle Properties Arcade</title>
+    <!-- Tailwind CSS for responsive HUD & overlays -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Retro Arcade & Monospace Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================================
+           RETRO 1981 VECTOR ARCADE & CRT STYLING
+           ========================================================= */
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00cc;
+            --neon-yellow: #ffe600;
+            --neon-lime: #39ff14;
+            --neon-amber: #ffaa00;
+            --neon-red: #ff2a55;
+            --neon-violet: #b84dff;
+            --bg-void: #03040a;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-void);
+            color: #e8f7ff;
+            font-family: 'Share Tech Mono', monospace;
+            touch-action: none;
+        }
+
+        .font-arcade {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Subtle CRT Scanline & Vignette Overlay */
+        .crt-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+            background:
+                linear-gradient(
+                    rgba(18, 16, 16, 0) 50%,
+                    rgba(0, 0, 0, 0.22) 50%
+                ),
+                radial-gradient(
+                    circle at center,
+                    transparent 60%,
+                    rgba(0, 0, 0, 0.5) 100%
+                );
+            background-size: 100% 4px, 100% 100%;
+        }
+
+        /* Neon Text Glows */
+        .glow-cyan {
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.85), 0 0 18px rgba(0, 243, 255, 0.45);
+        }
+        .glow-magenta {
+            text-shadow: 0 0 8px rgba(255, 0, 204, 0.85), 0 0 18px rgba(255, 0, 204, 0.45);
+        }
+        .glow-yellow {
+            text-shadow: 0 0 8px rgba(255, 230, 0, 0.85), 0 0 18px rgba(255, 230, 0, 0.45);
+        }
+        .glow-lime {
+            text-shadow: 0 0 8px rgba(57, 255, 20, 0.85), 0 0 18px rgba(57, 255, 20, 0.45);
+        }
+        .glow-amber {
+            text-shadow: 0 0 8px rgba(255, 170, 0, 0.85), 0 0 18px rgba(255, 170, 0, 0.45);
+        }
+
+        /* Arcade Vector Buttons */
+        .arcade-btn {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 243, 255, 0.16) 0%, rgba(0, 120, 180, 0.08) 100%);
+            border: 1.5px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.28), inset 0 0 8px rgba(0, 243, 255, 0.14);
+            transition: transform 0.12s ease, box-shadow 0.15s ease, background 0.15s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .arcade-btn:hover {
+            background: linear-gradient(180deg, rgba(0, 243, 255, 0.3) 0%, rgba(0, 160, 220, 0.18) 100%);
+            box-shadow: 0 0 18px rgba(0, 243, 255, 0.65), inset 0 0 12px rgba(0, 243, 255, 0.28);
+            transform: translateY(-1px);
+        }
+        .arcade-btn:active {
+            transform: scale(0.97);
+        }
+
+        .arcade-btn-primary {
+            background: linear-gradient(180deg, rgba(255, 230, 0, 0.24) 0%, rgba(255, 140, 0, 0.12) 100%);
+            border: 2px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            box-shadow: 0 0 18px rgba(255, 230, 0, 0.45), inset 0 0 12px rgba(255, 230, 0, 0.2);
+        }
+        .arcade-btn-primary:hover {
+            background: linear-gradient(180deg, rgba(255, 230, 0, 0.38) 0%, rgba(255, 160, 0, 0.22) 100%);
+            box-shadow: 0 0 28px rgba(255, 230, 0, 0.8), inset 0 0 16px rgba(255, 230, 0, 0.35);
+        }
+
+        .arcade-btn-magenta {
+            background: linear-gradient(180deg, rgba(255, 0, 204, 0.18) 0%, rgba(160, 0, 130, 0.08) 100%);
+            border: 1.5px solid var(--neon-magenta);
+            color: #ff66e0;
+            box-shadow: 0 0 12px rgba(255, 0, 204, 0.35), inset 0 0 8px rgba(255, 0, 204, 0.15);
+        }
+        .arcade-btn-magenta:hover {
+            background: linear-gradient(180deg, rgba(255, 0, 204, 0.32) 0%, rgba(190, 0, 150, 0.18) 100%);
+            box-shadow: 0 0 20px rgba(255, 0, 204, 0.7), inset 0 0 12px rgba(255, 0, 204, 0.3);
+        }
+
+        /* Rule Picker Interactive Checkbox Cards */
+        .rule-toggle-card {
+            background: rgba(6, 12, 26, 0.88);
+            border: 1.5px solid rgba(100, 130, 170, 0.4);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            cursor: pointer;
+        }
+        .rule-toggle-card.active {
+            background: rgba(8, 20, 42, 0.94);
+            border-color: var(--card-accent, var(--neon-cyan));
+            box-shadow: 0 0 14px var(--card-glow, rgba(0, 243, 255, 0.3)), inset 0 0 10px rgba(0, 243, 255, 0.08);
+        }
+        .rule-checkbox-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+            border: 2px solid rgba(148, 163, 184, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+        .rule-toggle-card.active .rule-checkbox-box {
+            border-color: var(--card-accent, var(--neon-cyan));
+            background: var(--card-accent, var(--neon-cyan));
+            color: #03040a;
+            box-shadow: 0 0 10px var(--card-glow, rgba(0, 243, 255, 0.55));
+        }
+
+        /* Modal Panel Styling */
+        .arcade-panel {
+            background: linear-gradient(180deg, rgba(7, 12, 28, 0.96) 0%, rgba(3, 5, 14, 0.98) 100%);
+            border: 2px solid rgba(0, 243, 255, 0.55);
+            box-shadow: 0 0 36px rgba(0, 243, 255, 0.22), inset 0 0 24px rgba(0, 243, 255, 0.08);
+        }
+
+        /* Dedicated Playfield Container (occupies all middle space cleanly) */
+        #playfield {
+            position: relative;
+            flex: 1 1 0%;
+            min-height: 0;
+            width: 100%;
+            overflow: hidden;
+            background: var(--bg-void);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* Target Prompt Card positioned cleanly right below the Tempest web */
+        #promptDock {
+            position: absolute;
+            left: 0;
+            right: 0;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            padding: 0 12px;
+        }
+
+        .rule-prompt-card {
+            background: rgba(4, 9, 22, 0.93);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 18px var(--prompt-glow, rgba(0, 243, 255, 0.45)), inset 0 0 12px rgba(0, 243, 255, 0.12);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        @keyframes promptFlash {
+            0%   { transform: scale(1); filter: brightness(1); }
+            35%  { transform: scale(1.045); filter: brightness(1.45); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .prompt-pulse {
+            animation: promptFlash 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes warnShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .warn-shake {
+            animation: warnShake 0.28s ease;
+        }
+
+        /* Compact scrolling inside modals on short viewports */
+        .modal-scroll {
+            max-height: 94vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 243, 255, 0.4) transparent;
+        }
+    </style>
+</head>
+<body class="relative flex flex-col w-screen h-screen overflow-hidden">
+
+    <!-- CRT Scanline & Vignette Layer -->
+    <div class="crt-overlay"></div>
+
+    <!-- =========================================================
+         ROW 1: COMPACT TOP HUD BAR (Fits cleanly on 1366x768)
+         ========================================================= -->
+    <header id="topHudBar" class="relative z-20 shrink-0 w-full bg-black/95 border-b border-cyan-500/40 px-2.5 sm:px-4 py-1.5">
+        <div class="w-full flex items-center justify-between gap-2 min-w-0">
+            <!-- Left Side: Title + Score + Streak + Wave -->
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
+                <div class="hidden lg:block font-arcade text-xs xl:text-sm font-black tracking-wider text-yellow-300 glow-yellow pr-2.5 border-r border-cyan-500/30 whitespace-nowrap">
+                    TRANSVERSAL TEMPEST
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div>
+                        <div class="text-[9px] text-cyan-400/80 tracking-widest leading-none">SCORE</div>
+                        <div id="hudScore" class="font-arcade text-xs sm:text-sm md:text-base font-bold text-yellow-300 glow-yellow leading-tight">000000</div>
+                    </div>
+                    <div class="h-5 w-px bg-cyan-500/30"></div>
+                    <div>
+                        <div class="text-[9px] text-cyan-400/80 tracking-widest leading-none">STREAK</div>
+                        <div id="hudStreak" class="font-arcade text-xs sm:text-sm md:text-base font-bold text-lime-400 glow-lime leading-tight">0 <span class="text-[10px] text-cyan-300">x1</span></div>
+                    </div>
+                    <div class="h-5 w-px bg-cyan-500/30"></div>
+                    <div>
+                        <div class="text-[9px] text-cyan-400/80 tracking-widest leading-none">WAVE</div>
+                        <div id="hudWave" class="font-arcade text-xs sm:text-sm md:text-base font-bold text-fuchsia-400 glow-magenta leading-tight">1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Claws + Hints + SFX + Rules/Menu -->
+            <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                <!-- Lives / Claws -->
+                <div class="flex items-center gap-1 bg-black/80 border border-yellow-400/45 rounded-lg px-1.5 sm:px-2 py-1" title="Claws Remaining">
+                    <span class="text-[9px] text-yellow-300/85 hidden md:inline mr-0.5 tracking-wider">CLAWS</span>
+                    <div id="hudLives" class="flex items-center gap-0.5"></div>
+                </div>
+
+                <!-- Hints / Pro Mode Toggle -->
+                <button id="hudHintToggle" type="button" class="arcade-btn rounded-lg px-2 py-1 text-[10px] sm:text-xs font-bold tracking-wider uppercase" title="Toggle Hints vs Pro Mode">
+                    HINTS: ON
+                </button>
+
+                <!-- Retrowave Music Toggle -->
+                <button id="hudMusicBtn" type="button" class="arcade-btn rounded-lg px-2 py-1 text-[10px] sm:text-xs font-bold tracking-wider uppercase" title="Toggle Retrowave Music (M)">
+                    MUSIC: ON
+                </button>
+
+                <!-- SFX Toggle -->
+                <button id="hudMuteBtn" type="button" class="arcade-btn rounded-lg px-2 py-1 text-[10px] sm:text-xs font-bold tracking-wider uppercase" title="Toggle Sound Effects">
+                    SFX: ON
+                </button>
+
+                <!-- Rules / Menu Button -->
+                <button id="hudRulesBtn" type="button" class="arcade-btn-magenta rounded-lg px-2 py-1 text-[10px] sm:text-xs font-bold tracking-wider uppercase" title="Open Rule Picker & Menu">
+                    RULES
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         ROW 2: MAIN PLAYFIELD (Dead-Center Web + Prompt Below)
+         ========================================================= -->
+    <main id="playfield">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Target Prompt Card docked cleanly right underneath the Tempest web -->
+        <div id="promptDock" class="opacity-0 transition-opacity duration-200">
+            <div id="ruleBanner" class="rule-prompt-card rounded-xl px-4 sm:px-6 py-1.5 sm:py-2 text-center max-w-[94vw]">
+                <div id="hudRuleText" class="font-arcade text-xs sm:text-sm md:text-base lg:text-lg font-black tracking-wider text-cyan-300 glow-cyan">
+                    SHOOT THE: CORRESPONDING ANGLE (F-RULE)
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- =========================================================
+         ROW 3: COMPACT BOTTOM CONTROL STRIP
+         ========================================================= -->
+    <footer id="controlStrip" class="relative z-20 shrink-0 w-full bg-black/95 border-t border-cyan-500/30 px-3 py-1 text-center">
+        <div class="text-[10px] sm:text-xs text-cyan-200/85 tracking-wider truncate">
+            <span class="text-yellow-300 font-bold">← → / A D:</span> Move &bull;
+            <span class="text-yellow-300 font-bold">SPACE / ENTER:</span> Fire &bull;
+            <span class="text-yellow-300 font-bold">Mouse / Trackpad:</span> Aim &amp; Click &bull;
+            <span class="text-yellow-300 font-bold">M:</span> Music
+        </div>
+    </footer>
+
+    <!-- =========================================================
+         START SCREEN & RULE PICKER OVERLAY
+         ========================================================= -->
+    <div id="startScreen" class="fixed inset-0 z-30 flex items-center justify-center p-2.5 sm:p-4 bg-black/82 backdrop-blur-xs">
+        <div class="arcade-panel modal-scroll rounded-2xl w-full max-w-2xl p-4 sm:p-6 text-center">
+            <div class="inline-block px-3 py-0.5 mb-1.5 rounded-full border border-fuchsia-500/60 bg-fuchsia-500/10 text-fuchsia-300 text-[10px] sm:text-[11px] tracking-[0.22em] uppercase">
+                1981 VECTOR GEOMETRY ARCADE
+            </div>
+            <h1 class="font-arcade text-2xl sm:text-4xl font-black tracking-wider text-yellow-300 glow-yellow mb-1">
+                TRANSVERSAL TEMPEST
+            </h1>
+            <p class="text-cyan-200/85 text-xs sm:text-sm mb-4 max-w-lg mx-auto">
+                Rotate your claw around the neon web and blast the matching angle before the Flippers breach the rim!
+            </p>
+
+            <!-- ANGLE RULES CHECKBOX PICKER -->
+            <div class="text-left mb-4">
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <span class="font-arcade text-xs sm:text-sm font-bold text-cyan-300 tracking-wider uppercase">
+                        ANGLE RULES <span class="text-slate-400 font-sans text-[11px] font-normal">(Pick at least one)</span>
+                    </span>
+                    <span id="rulePickerWarning" class="text-[11px] text-rose-400 font-bold opacity-0 transition-opacity">
+                        Keep at least 1 rule active!
+                    </span>
+                </div>
+
+                <div class="space-y-2">
+                    <!-- 1. Parallel Lines -->
+                    <div id="toggleParallel" class="rule-toggle-card active rounded-xl p-2.5 sm:p-3 flex items-center gap-3" style="--card-accent:#00f3ff; --card-glow:rgba(0,243,255,0.4);" role="checkbox" aria-checked="true" tabindex="0">
+                        <div class="rule-checkbox-box">
+                            <svg class="w-3.5 h-3.5 check-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-arcade text-xs sm:text-sm font-bold text-cyan-300 tracking-wide">
+                                PARALLEL LINES
+                            </div>
+                            <div class="text-[11px] sm:text-xs text-slate-300">
+                                Corresponding (<span class="text-cyan-300 font-bold">F</span>), Alternate Interior (<span class="text-fuchsia-300 font-bold">Z</span>), Co-Interior (<span class="text-amber-300 font-bold">C</span>)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Intersection Angles -->
+                    <div id="toggleIntersection" class="rule-toggle-card active rounded-xl p-2.5 sm:p-3 flex items-center gap-3" style="--card-accent:#39ff14; --card-glow:rgba(57,255,20,0.4);" role="checkbox" aria-checked="true" tabindex="0">
+                        <div class="rule-checkbox-box">
+                            <svg class="w-3.5 h-3.5 check-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-arcade text-xs sm:text-sm font-bold text-lime-300 tracking-wide">
+                                INTERSECTION ANGLES
+                            </div>
+                            <div class="text-[11px] sm:text-xs text-slate-300">
+                                Opposite (<span class="text-lime-300 font-bold">X-Rule</span>) &amp; Supplementary (<span class="text-yellow-300 font-bold">Straight Line 180°</span>)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Warp Math Waves -->
+                    <div id="toggleWarp" class="rule-toggle-card active rounded-xl p-2.5 sm:p-3 flex items-center gap-3" style="--card-accent:#ff00cc; --card-glow:rgba(255,0,204,0.45);" role="checkbox" aria-checked="true" tabindex="0">
+                        <div class="rule-checkbox-box">
+                            <svg class="w-3.5 h-3.5 check-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-arcade text-xs sm:text-sm font-bold text-fuchsia-300 tracking-wide">
+                                WARP MATH WAVES <span class="text-[10px] text-yellow-300/90 font-sans font-normal">(Every 3rd Wave)</span>
+                            </div>
+                            <div class="text-[11px] sm:text-xs text-slate-300">
+                                Complementary (<span class="text-cyan-300 font-bold">Sum = 90°</span>) &amp; Triangle Sum (<span class="text-fuchsia-300 font-bold">Sum = 180°</span>)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PACE & HINTS TOGGLES -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
+                <button id="startPaceToggle" type="button" class="arcade-btn rounded-xl px-3 py-2 text-xs sm:text-sm font-bold tracking-wider">
+                    PACE: ARCADE (STANDARD)
+                </button>
+                <button id="startHintToggle" type="button" class="arcade-btn rounded-xl px-3 py-2 text-xs sm:text-sm font-bold tracking-wider">
+                    HINTS: ON (F / Z / C / X / 90° / 180°)
+                </button>
+            </div>
+
+            <!-- Launch Button -->
+            <button id="playBtn" type="button" class="arcade-btn arcade-btn-primary font-arcade text-base sm:text-xl font-black tracking-[0.14em] px-9 py-2.5 sm:py-3 rounded-xl uppercase">
+                START GAME
+            </button>
+
+            <div class="mt-2.5 text-[11px] text-cyan-300/80 tracking-wider">
+                Press SPACE / ENTER or Click to Launch
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         GAME OVER & ACCURACY BREAKDOWN OVERLAY
+         ========================================================= -->
+    <div id="gameOverScreen" class="hidden fixed inset-0 z-30 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-xs">
+        <div class="arcade-panel modal-scroll rounded-2xl w-full max-w-xl p-5 sm:p-6 text-center">
+            <div class="text-xs text-rose-400 tracking-[0.28em] uppercase mb-1">WEB BREACHED</div>
+            <h2 class="font-arcade text-3xl sm:text-4xl font-black text-yellow-300 glow-yellow mb-4">
+                GAME OVER
+            </h2>
+
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-3 gap-2.5 mb-4">
+                <div class="bg-black/75 border border-yellow-400/45 rounded-xl p-2.5">
+                    <div class="text-[10px] text-yellow-300/80 tracking-widest">FINAL SCORE</div>
+                    <div id="goScore" class="font-arcade text-lg sm:text-2xl font-bold text-yellow-300 glow-yellow">0</div>
+                </div>
+                <div class="bg-black/75 border border-fuchsia-400/45 rounded-xl p-2.5">
+                    <div class="text-[10px] text-fuchsia-300/80 tracking-widest">WAVE REACHED</div>
+                    <div id="goWave" class="font-arcade text-lg sm:text-2xl font-bold text-fuchsia-300 glow-magenta">1</div>
+                </div>
+                <div class="bg-black/75 border border-lime-400/45 rounded-xl p-2.5">
+                    <div class="text-[10px] text-lime-300/80 tracking-widest">BEST STREAK</div>
+                    <div id="goStreak" class="font-arcade text-lg sm:text-2xl font-bold text-lime-400 glow-lime">0</div>
+                </div>
+            </div>
+
+            <!-- Per-Rule Accuracy Breakdown (only rules encountered this session) -->
+            <div class="bg-black/80 border border-cyan-500/40 rounded-xl p-3.5 sm:p-4 mb-5 text-left">
+                <div class="font-arcade text-xs sm:text-sm font-bold text-cyan-300 tracking-wider uppercase mb-3 text-center">
+                    ACCURACY BREAKDOWN BY RULE
+                </div>
+                <div id="accuracyBreakdown" class="space-y-2.5"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <button id="changeRulesBtn" type="button" class="arcade-btn-magenta font-arcade text-xs sm:text-sm font-bold tracking-wider px-5 py-2.5 rounded-xl uppercase">
+                    CHANGE RULES
+                </button>
+                <button id="playAgainBtn" type="button" class="arcade-btn arcade-btn-primary font-arcade text-sm sm:text-base font-black tracking-[0.14em] px-7 py-2.5 rounded-xl uppercase">
+                    PLAY AGAIN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            /* =========================================================
+               1. RETRO WEB AUDIO SYNTHESIZER (Pure Web Audio API)
+               ========================================================= */
+            class ArcadeAudio {
+                constructor() {
+                    this.ctx = null;
+                    this.muted = false;
+
+                    // Independent Retrowave / Synthwave Music Sequencer state
+                    this.musicEnabled = true;
+                    this.musicPlaying = false;
+                    this.musicGain = null;
+                    this.delayNode = null;
+                    this.delayFeedback = null;
+                    this.noiseBuffer = null;
+                    this.schedulerId = null;
+                    this.nextNoteTime = 0;
+                    this.currentStep = 0;
+                    this.bpm = 116;
+                }
+
+                init() {
+                    try {
+                        if (!this.ctx) {
+                            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                            if (AudioCtx) this.ctx = new AudioCtx();
+                        }
+                        if (this.ctx && this.ctx.state === 'suspended') {
+                            this.ctx.resume();
+                        }
+                        if (this.ctx && !this.musicGain) {
+                            this._setupMusicBus();
+                        }
+                    } catch (e) {
+                        // Gracefully ignore autoplay restrictions
+                    }
+                }
+
+                /** Build dedicated music master gain, echo delay bus, and shared drum noise buffer */
+                _setupMusicBus() {
+                    const ctx = this.ctx;
+                    this.musicGain = ctx.createGain();
+                    this.musicGain.gain.setValueAtTime(this.musicEnabled ? 0.24 : 0.0001, ctx.currentTime);
+                    this.musicGain.connect(ctx.destination);
+
+                    // Dotted-8th retro synth echo bus
+                    const stepDur = 60 / this.bpm / 4;
+                    this.delayNode = ctx.createDelay(1.0);
+                    this.delayNode.delayTime.setValueAtTime(stepDur * 3, ctx.currentTime);
+
+                    const delayFilter = ctx.createBiquadFilter();
+                    delayFilter.type = 'lowpass';
+                    delayFilter.frequency.setValueAtTime(2600, ctx.currentTime);
+
+                    this.delayFeedback = ctx.createGain();
+                    this.delayFeedback.gain.setValueAtTime(0.32, ctx.currentTime);
+
+                    const delayWet = ctx.createGain();
+                    delayWet.gain.setValueAtTime(0.35, ctx.currentTime);
+
+                    this.delayNode.connect(delayFilter);
+                    delayFilter.connect(this.delayFeedback);
+                    this.delayFeedback.connect(this.delayNode);
+                    delayFilter.connect(delayWet);
+                    delayWet.connect(this.musicGain);
+
+                    // Shared 1-second white noise buffer for gated snare & hi-hats
+                    const len = Math.floor(ctx.sampleRate * 1.0);
+                    this.noiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+                    const data = this.noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < len; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                }
+
+                /** Convert MIDI note number to frequency in Hz */
+                _midiToFreq(midi) {
+                    return 440 * Math.pow(2, (midi - 69) / 12);
+                }
+
+                /** Start the lookahead retrowave sequencer if enabled */
+                startMusic() {
+                    this.init();
+                    if (!this.ctx || !this.musicEnabled) return;
+                    if (this.musicGain) {
+                        const now = this.ctx.currentTime;
+                        this.musicGain.gain.cancelScheduledValues(now);
+                        this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
+                        this.musicGain.gain.linearRampToValueAtTime(0.24, now + 0.18);
+                    }
+                    if (this.musicPlaying) return;
+
+                    this.musicPlaying = true;
+                    this.currentStep = 0;
+                    this.nextNoteTime = this.ctx.currentTime + 0.06;
+                    this.schedulerId = window.setInterval(() => this._scheduleMusic(), 25);
+                }
+
+                /** Smoothly fade out and halt the music sequencer without affecting SFX */
+                stopMusic() {
+                    if (this.schedulerId !== null) {
+                        clearInterval(this.schedulerId);
+                        this.schedulerId = null;
+                    }
+                    this.musicPlaying = false;
+                    if (this.ctx && this.musicGain) {
+                        const now = this.ctx.currentTime;
+                        this.musicGain.gain.cancelScheduledValues(now);
+                        this.musicGain.gain.setValueAtTime(Math.max(0.0001, this.musicGain.gain.value), now);
+                        this.musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.15);
+                    }
+                }
+
+                /** Toggle retrowave music independently of SFX */
+                toggleMusic() {
+                    this.musicEnabled = !this.musicEnabled;
+                    if (this.musicEnabled) {
+                        this.startMusic();
+                    } else {
+                        this.stopMusic();
+                    }
+                    return this.musicEnabled;
+                }
+
+                /** Lookahead Web Audio scheduler (16th-note grid at 116 BPM) */
+                _scheduleMusic() {
+                    if (!this.ctx || !this.musicPlaying || !this.musicEnabled) return;
+                    const stepDur = 60 / this.bpm / 4;
+                    const lookahead = 0.12;
+                    while (this.nextNoteTime < this.ctx.currentTime + lookahead) {
+                        this._playMusicStep(this.currentStep, this.nextNoteTime, stepDur);
+                        this.nextNoteTime += stepDur;
+                        this.currentStep = (this.currentStep + 1) % 128; // 8-bar loop
+                    }
+                }
+
+                /** Synthesize one 16th-note step across Bass, Drums, Arp, and Lead */
+                _playMusicStep(step, time, stepDur) {
+                    const bar = Math.floor(step / 16);        // 0..7
+                    const s = step % 16;                      // 0..15
+                    const chordIdx = bar % 4;                 // Am - F - C - G
+
+                    // Bass root MIDI notes: A1(33), F1(29), C2(36), G1(31)
+                    const bassRoots = [33, 29, 36, 31];
+                    const root = bassRoots[chordIdx];
+
+                    // 1. Driving 16th-note Retrowave Bassline (octave pump on off-beats)
+                    const bassOctaveUp = (s % 4 === 2) || (s === 15);
+                    this._trigBass(time, this._midiToFreq(root + (bassOctaveUp ? 12 : 0)), stepDur * 0.88, s % 4 === 0);
+
+                    // 2. 80s Drum Machine (Kick on 1 & 3, Gated Snare on 2 & 4, 16th Hi-Hat)
+                    if (s === 0 || s === 8 || ((bar === 3 || bar === 7) && s === 14)) {
+                        this._trigKick(time);
+                    }
+                    if (s === 4 || s === 12) {
+                        this._trigSnare(time);
+                    }
+                    this._trigHiHat(time, s % 2 === 1 ? 0.12 : 0.055);
+
+                    // 3. Shimmering Retro Arpeggio (8th-note pulse with occasional 16th sparkle)
+                    const arpChords = [
+                        [57, 60, 64, 67, 64, 60, 64, 69], // Am7
+                        [53, 57, 60, 64, 60, 57, 60, 65], // Fmaj7
+                        [60, 64, 67, 71, 67, 64, 67, 72], // Cmaj7
+                        [55, 59, 62, 67, 62, 59, 62, 67]  // G
+                    ];
+                    if (s % 2 === 0) {
+                        const arpNote = arpChords[chordIdx][s / 2];
+                        this._trigArp(time, this._midiToFreq(arpNote), stepDur * 1.75);
+                    }
+
+                    // 4. Breathing 80s Synth Lead Motif (evolves in bars 4..7)
+                    if (bar >= 4) {
+                        const leadPatterns = {
+                            4: { 0: 76, 6: 72, 10: 74, 12: 76 },
+                            5: { 0: 72, 6: 69, 10: 72, 14: 74 },
+                            6: { 0: 76, 4: 79, 8: 76, 12: 72 },
+                            7: { 0: 74, 6: 71, 10: 74, 14: 76 }
+                        };
+                        const note = leadPatterns[bar] && leadPatterns[bar][s];
+                        if (note) {
+                            this._trigLead(time, this._midiToFreq(note), stepDur * 3.4);
+                        }
+                    }
+                }
+
+                _trigBass(time, freq, dur, accent) {
+                    const ctx = this.ctx;
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+
+                    osc1.type = 'sawtooth';
+                    osc2.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(freq, time);
+                    osc2.frequency.setValueAtTime(freq * 1.005, time); // Warm analog detune
+
+                    filter.type = 'lowpass';
+                    filter.Q.setValueAtTime(4.5, time);
+                    filter.frequency.setValueAtTime(accent ? 1050 : 760, time);
+                    filter.frequency.exponentialRampToValueAtTime(150, time + dur);
+
+                    gain.gain.setValueAtTime(0.001, time);
+                    gain.gain.linearRampToValueAtTime(accent ? 0.34 : 0.24, time + 0.008);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.musicGain);
+
+                    osc1.start(time);
+                    osc2.start(time);
+                    osc1.stop(time + dur + 0.02);
+                    osc2.stop(time + dur + 0.02);
+                }
+
+                _trigKick(time) {
+                    const ctx = this.ctx;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150, time);
+                    osc.frequency.exponentialRampToValueAtTime(42, time + 0.11);
+
+                    gain.gain.setValueAtTime(0.55, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+                    osc.connect(gain);
+                    gain.connect(this.musicGain);
+                    osc.start(time);
+                    osc.stop(time + 0.19);
+                }
+
+                _trigSnare(time) {
+                    const ctx = this.ctx;
+                    // Gated-reverb noise burst
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = this.noiseBuffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.setValueAtTime(1850, time);
+                    filter.Q.setValueAtTime(0.9, time);
+
+                    const nGain = ctx.createGain();
+                    nGain.gain.setValueAtTime(0.32, time);
+                    nGain.gain.setValueAtTime(0.24, time + 0.09); // Gated hold
+                    nGain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+
+                    noise.connect(filter);
+                    filter.connect(nGain);
+                    nGain.connect(this.musicGain);
+                    noise.start(time);
+                    noise.stop(time + 0.17);
+
+                    // Snappy snare body
+                    const body = ctx.createOscillator();
+                    const bGain = ctx.createGain();
+                    body.type = 'triangle';
+                    body.frequency.setValueAtTime(195, time);
+                    body.frequency.exponentialRampToValueAtTime(110, time + 0.08);
+                    bGain.gain.setValueAtTime(0.26, time);
+                    bGain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
+                    body.connect(bGain);
+                    bGain.connect(this.musicGain);
+                    body.start(time);
+                    body.stop(time + 0.1);
+                }
+
+                _trigHiHat(time, vol) {
+                    const ctx = this.ctx;
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = this.noiseBuffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(8400, time);
+
+                    const gain = ctx.createGain();
+                    gain.gain.setValueAtTime(vol, time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.038);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.musicGain);
+                    noise.start(time);
+                    noise.stop(time + 0.045);
+                }
+
+                _trigArp(time, freq, dur) {
+                    const ctx = this.ctx;
+                    const osc = ctx.createOscillator();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, time);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(2400, time);
+                    filter.frequency.exponentialRampToValueAtTime(750, time + dur);
+
+                    gain.gain.setValueAtTime(0.001, time);
+                    gain.gain.linearRampToValueAtTime(0.14, time + 0.012);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.musicGain);
+                    if (this.delayNode) gain.connect(this.delayNode);
+
+                    osc.start(time);
+                    osc.stop(time + dur + 0.02);
+                }
+
+                _trigLead(time, freq, dur) {
+                    const ctx = this.ctx;
+                    const osc1 = ctx.createOscillator();
+                    const osc2 = ctx.createOscillator();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+
+                    osc1.type = 'square';
+                    osc2.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(freq, time);
+                    osc2.frequency.setValueAtTime(freq * 1.006, time);
+
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1850, time);
+                    filter.frequency.exponentialRampToValueAtTime(800, time + dur);
+
+                    gain.gain.setValueAtTime(0.001, time);
+                    gain.gain.linearRampToValueAtTime(0.11, time + 0.04);
+                    gain.gain.setValueAtTime(0.085, time + dur * 0.65);
+                    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.musicGain);
+                    if (this.delayNode) gain.connect(this.delayNode);
+
+                    osc1.start(time);
+                    osc2.start(time);
+                    osc1.stop(time + dur + 0.03);
+                    osc2.stop(time + dur + 0.03);
+                }
+
+                toggleMute() {
+                    this.muted = !this.muted;
+                    return this.muted;
+                }
+
+                /** Crisp claw movement click */
+                playMoveTick() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(560, now);
+                        osc.frequency.exponentialRampToValueAtTime(860, now + 0.03);
+                        gain.gain.setValueAtTime(0.075, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.04);
+                    } catch (e) {}
+                }
+
+                /** Classic Tempest downward laser pew */
+                playLaser() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(1480, now);
+                        osc.frequency.exponentialRampToValueAtTime(175, now + 0.14);
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(now);
+                        osc.stop(now + 0.16);
+                    } catch (e) {}
+                }
+
+                /** Flipper zap + bright correct chime */
+                playCorrectZap() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        // Filtered noise burst for flipper zap
+                        const bufSize = Math.floor(this.ctx.sampleRate * 0.18);
+                        const buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                        const data = buffer.getChannelData(0);
+                        for (let i = 0; i < bufSize; i++) {
+                            data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+                        }
+                        const noise = this.ctx.createBufferSource();
+                        noise.buffer = buffer;
+
+                        const filter = this.ctx.createBiquadFilter();
+                        filter.type = 'bandpass';
+                        filter.frequency.setValueAtTime(1800, now);
+                        filter.frequency.exponentialRampToValueAtTime(320, now + 0.18);
+
+                        const nGain = this.ctx.createGain();
+                        nGain.gain.setValueAtTime(0.16, now);
+                        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                        noise.connect(filter);
+                        filter.connect(nGain);
+                        nGain.connect(this.ctx.destination);
+                        noise.start(now);
+
+                        // Crisp two-tone arcade confirm chime
+                        [659.25, 987.77].forEach((freq, idx) => {
+                            const t = now + idx * 0.055;
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(freq, t);
+                            gain.gain.setValueAtTime(0.1, t);
+                            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(t);
+                            osc.stop(t + 0.15);
+                        });
+                    } catch (e) {}
+                }
+
+                /** Dual-oscillator buzzer + claw hit explosion */
+                playWrongExplosion() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        // Buzzer
+                        [124, 134].forEach((freq) => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'sawtooth';
+                            osc.frequency.setValueAtTime(freq, now);
+                            osc.frequency.linearRampToValueAtTime(freq * 0.68, now + 0.32);
+                            gain.gain.setValueAtTime(0.1, now);
+                            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(now);
+                            osc.stop(now + 0.35);
+                        });
+                        // Low rumble burst
+                        const bufSize = Math.floor(this.ctx.sampleRate * 0.25);
+                        const buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+                        const data = buffer.getChannelData(0);
+                        for (let i = 0; i < bufSize; i++) {
+                            data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+                        }
+                        const noise = this.ctx.createBufferSource();
+                        noise.buffer = buffer;
+                        const filter = this.ctx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(600, now);
+                        filter.frequency.exponentialRampToValueAtTime(90, now + 0.25);
+                        const nGain = this.ctx.createGain();
+                        nGain.gain.setValueAtTime(0.18, now);
+                        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                        noise.connect(filter);
+                        filter.connect(nGain);
+                        nGain.connect(this.ctx.destination);
+                        noise.start(now);
+                    } catch (e) {}
+                }
+
+                /** Ascending retro wave chime */
+                playWaveChime() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        const notes = [523.25, 659.25, 783.99, 1046.5];
+                        notes.forEach((freq, idx) => {
+                            const t = now + idx * 0.06;
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'square';
+                            osc.frequency.setValueAtTime(freq, t);
+                            gain.gain.setValueAtTime(0.08, t);
+                            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start(t);
+                            osc.stop(t + 0.16);
+                        });
+                    } catch (e) {}
+                }
+
+                /** Classic Tempest ascending sci-fi warp tunnel sweep */
+                playWarpSweep() {
+                    if (this.muted) return;
+                    this.init();
+                    if (!this.ctx) return;
+                    try {
+                        const now = this.ctx.currentTime;
+                        const dur = 0.95;
+
+                        const osc1 = this.ctx.createOscillator();
+                        const osc2 = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+
+                        osc1.type = 'sawtooth';
+                        osc2.type = 'triangle';
+
+                        osc1.frequency.setValueAtTime(160, now);
+                        osc1.frequency.exponentialRampToValueAtTime(1280, now + dur);
+
+                        osc2.frequency.setValueAtTime(240, now);
+                        osc2.frequency.exponentialRampToValueAtTime(1920, now + dur);
+
+                        gain.gain.setValueAtTime(0.001, now);
+                        gain.gain.linearRampToValueAtTime(0.11, now + 0.15);
+                        gain.gain.setValueAtTime(0.1, now + dur * 0.72);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+                        osc1.connect(gain);
+                        osc2.connect(gain);
+                        gain.connect(this.ctx.destination);
+
+                        osc1.start(now);
+                        osc2.start(now);
+                        osc1.stop(now + dur + 0.02);
+                        osc2.stop(now + dur + 0.02);
+                    } catch (e) {}
+                }
+            }
+
+            const audio = new ArcadeAudio();
+
+            /* =========================================================
+               2. RULES REGISTRY (STANDARD 8-LANE + WARP MATH WAVES)
+               ========================================================= */
+
+            /**
+             * Exact 8 Angle Pockets in clockwise circular order (lane 0..7):
+             *   line = 0 (Top parallel line, y = -d), line = 1 (Bottom parallel line, y = +d)
+             *   vert = -1 (Above line), vert = +1 (Below line)
+             *   side = -1 (Left of transversal), side = +1 (Right of transversal)
+             */
+            const ANGLES = [
+                { lane: 0, line: 0, vert: -1, side: -1 },
+                { lane: 1, line: 0, vert: -1, side:  1 },
+                { lane: 2, line: 0, vert:  1, side:  1 },
+                { lane: 3, line: 1, vert: -1, side:  1 },
+                { lane: 4, line: 1, vert:  1, side:  1 },
+                { lane: 5, line: 1, vert:  1, side: -1 },
+                { lane: 6, line: 1, vert: -1, side: -1 },
+                { lane: 7, line: 0, vert:  1, side: -1 }
+            ];
+
+            function findLaneByProps(line, vert, side) {
+                for (let i = 0; i < ANGLES.length; i++) {
+                    const a = ANGLES[i];
+                    if (a.line === line && a.vert === vert && a.side === side) return a.lane;
+                }
+                return 0;
+            }
+
+            function isInteriorAngle(a) {
+                return (a.line === 0 && a.vert === 1) || (a.line === 1 && a.vert === -1);
+            }
+
+            /** Complete rule catalog for both Standard 8-Lane Web and Warp Math Waves */
+            const ALL_RULES = {
+                CORRESPONDING: {
+                    id: 'CORRESPONDING',
+                    group: 'parallel',
+                    term: 'CORRESPONDING ANGLE',
+                    shortLabel: 'Corresponding',
+                    hint: 'F-RULE',
+                    color: '#00f3ff',
+                    glow: 'rgba(0, 243, 255, 0.72)',
+                    validAnchors: ANGLES.map(a => a.lane),
+                    getTargets(anchorLane) {
+                        const a = ANGLES[anchorLane];
+                        return [findLaneByProps(1 - a.line, a.vert, a.side)];
+                    }
+                },
+                ALTERNATE_INTERIOR: {
+                    id: 'ALTERNATE_INTERIOR',
+                    group: 'parallel',
+                    term: 'ALTERNATE INTERIOR ANGLE',
+                    shortLabel: 'Alternate Interior',
+                    hint: 'Z-RULE',
+                    color: '#ff2ad4',
+                    glow: 'rgba(255, 42, 212, 0.72)',
+                    validAnchors: ANGLES.filter(isInteriorAngle).map(a => a.lane),
+                    getTargets(anchorLane) {
+                        const a = ANGLES[anchorLane];
+                        return [findLaneByProps(1 - a.line, -a.vert, -a.side)];
+                    }
+                },
+                CO_INTERIOR: {
+                    id: 'CO_INTERIOR',
+                    group: 'parallel',
+                    term: 'CO-INTERIOR ANGLE',
+                    shortLabel: 'Co-Interior',
+                    hint: 'C-RULE',
+                    color: '#ffaa00',
+                    glow: 'rgba(255, 170, 0, 0.72)',
+                    validAnchors: ANGLES.filter(isInteriorAngle).map(a => a.lane),
+                    getTargets(anchorLane) {
+                        const a = ANGLES[anchorLane];
+                        return [findLaneByProps(1 - a.line, -a.vert, a.side)];
+                    }
+                },
+                OPPOSITE: {
+                    id: 'OPPOSITE',
+                    group: 'intersection',
+                    term: 'OPPOSITE ANGLE',
+                    shortLabel: 'Opposite',
+                    hint: 'X-RULE',
+                    color: '#39ff14',
+                    glow: 'rgba(57, 255, 20, 0.72)',
+                    validAnchors: ANGLES.map(a => a.lane),
+                    getTargets(anchorLane) {
+                        const a = ANGLES[anchorLane];
+                        return [findLaneByProps(a.line, -a.vert, -a.side)];
+                    }
+                },
+                SUPPLEMENTARY: {
+                    id: 'SUPPLEMENTARY',
+                    group: 'intersection',
+                    term: 'SUPPLEMENTARY ANGLE',
+                    shortLabel: 'Supplementary',
+                    hint: 'STRAIGHT LINE',
+                    color: '#ffe600',
+                    glow: 'rgba(255, 230, 0, 0.72)',
+                    validAnchors: ANGLES.map(a => a.lane),
+                    /** Accepts EITHER adjacent angle at the same vertex (along parallel line OR along transversal) */
+                    getTargets(anchorLane) {
+                        const a = ANGLES[anchorLane];
+                        return [
+                            findLaneByProps(a.line, a.vert, -a.side), // Adjacent along parallel line
+                            findLaneByProps(a.line, -a.vert, a.side)  // Adjacent along transversal
+                        ];
+                    }
+                },
+                COMPLEMENTARY: {
+                    id: 'COMPLEMENTARY',
+                    group: 'warp',
+                    term: 'COMPLEMENTARY ANGLE',
+                    shortLabel: 'Complementary',
+                    hint: 'SUM = 90°',
+                    color: '#00f3ff',
+                    glow: 'rgba(0, 243, 255, 0.78)'
+                },
+                TRIANGLE_SUM: {
+                    id: 'TRIANGLE_SUM',
+                    group: 'warp',
+                    term: 'MISSING TRIANGLE ANGLE',
+                    shortLabel: 'Triangle Sum',
+                    hint: 'SUM = 180°',
+                    color: '#ff2ad4',
+                    glow: 'rgba(255, 42, 212, 0.78)'
+                }
+            };
+
+            const ALL_RULE_KEYS = [
+                'CORRESPONDING',
+                'ALTERNATE_INTERIOR',
+                'CO_INTERIOR',
+                'OPPOSITE',
+                'SUPPLEMENTARY',
+                'COMPLEMENTARY',
+                'TRIANGLE_SUM'
+            ];
+
+            /** 4 Cycling 8-Lane Standard Tempest Web Shapes & Neon Palettes */
+            const WEB_THEMES = [
+                {
+                    id: 'OCTAGON',
+                    name: 'CLASSIC OCTAGON',
+                    rimColor: '#1e90ff',
+                    spokeColor: 'rgba(30, 144, 255, 0.58)',
+                    ringColor: 'rgba(30, 144, 255, 0.28)',
+                    innerColor: 'rgba(0, 243, 255, 0.36)',
+                    vertexRadiusFactor: () => 0.90,
+                    midPullFactor: 0.0,
+                    curveMode: 'LINEAR'
+                },
+                {
+                    id: 'STARBURST',
+                    name: 'STARBURST WEB',
+                    rimColor: '#b84dff',
+                    spokeColor: 'rgba(184, 77, 255, 0.60)',
+                    ringColor: 'rgba(184, 77, 255, 0.28)',
+                    innerColor: 'rgba(216, 140, 255, 0.40)',
+                    vertexRadiusFactor: () => 0.96,
+                    midPullFactor: -0.15,
+                    curveMode: 'PINCH'
+                },
+                {
+                    id: 'SHIELD',
+                    name: 'DIAMOND SHIELD',
+                    rimColor: '#00e5a8',
+                    spokeColor: 'rgba(0, 229, 168, 0.58)',
+                    ringColor: 'rgba(0, 229, 168, 0.27)',
+                    innerColor: 'rgba(0, 255, 195, 0.38)',
+                    vertexRadiusFactor: (k) => (k % 2 === 0 ? 0.97 : 0.80),
+                    midPullFactor: 0.0,
+                    curveMode: 'LINEAR'
+                },
+                {
+                    id: 'SCALLOPED',
+                    name: 'SCALLOPED FLARE',
+                    rimColor: '#ff9900',
+                    spokeColor: 'rgba(255, 153, 0, 0.58)',
+                    ringColor: 'rgba(255, 153, 0, 0.28)',
+                    innerColor: 'rgba(255, 196, 77, 0.38)',
+                    vertexRadiusFactor: () => 0.84,
+                    midPullFactor: 0.16,
+                    curveMode: 'CURVE'
+                }
+            ];
+
+            const TRANSVERSAL_SLANTS_DEG = [52, 64, 116, 128, 58, 122];
+            const ORIENTATIONS_DEG = [0, 38, 90, 132, 180, 218, 270, 312];
+
+            function normalizeAngle(a) {
+                while (a > Math.PI) a -= Math.PI * 2;
+                while (a < -Math.PI) a += Math.PI * 2;
+                return a;
+            }
+
+            /* =========================================================
+               3. GEOMETRY BUILDERS (8-LANE STANDARD & 6-LANE WARP)
+               ========================================================= */
+
+            /** Standard 8-lane Parallel-Line Web Geometry */
+            function buildStandardGeometry(R, alpha, theme) {
+                const d = R * 0.145;
+                const cot = Math.cos(alpha) / Math.sin(alpha);
+                const P1 = { x: -d * cot, y: -d };
+                const P2 = { x:  d * cot, y:  d };
+
+                const lineHalf = R * 0.335;
+                const transHalf = R * 0.32;
+                const dxT = Math.cos(alpha);
+                const dyT = Math.sin(alpha);
+
+                const innerRBase = R * 0.38;
+                const outerVerts = [];
+                const innerVerts = [];
+
+                for (let k = 0; k < 8; k++) {
+                    const ang = ((-135 + k * 45) * Math.PI) / 180;
+                    const oR = R * theme.vertexRadiusFactor(k);
+                    const iR = innerRBase * (theme.id === 'SHIELD' ? (k % 2 === 0 ? 1.05 : 0.94) : 1.0);
+                    outerVerts.push({ x: Math.cos(ang) * oR, y: Math.sin(ang) * oR });
+                    innerVerts.push({ x: Math.cos(ang) * iR, y: Math.sin(ang) * iR });
+                }
+
+                const alphaDeg = Math.round((alpha * 180) / Math.PI);
+                const suppDeg = 180 - alphaDeg;
+                const sectorOffset = R * 0.11;
+
+                const laneMeta = ANGLES.map((a) => {
+                    const center = a.line === 0 ? P1 : P2;
+                    let start, end, deg;
+                    if (a.vert === -1 && a.side === -1) {
+                        start = Math.PI; end = alpha + Math.PI; deg = alphaDeg;
+                    } else if (a.vert === -1 && a.side === 1) {
+                        start = alpha + Math.PI; end = Math.PI * 2; deg = suppDeg;
+                    } else if (a.vert === 1 && a.side === 1) {
+                        start = 0; end = alpha; deg = alphaDeg;
+                    } else {
+                        start = alpha; end = Math.PI; deg = suppDeg;
+                    }
+
+                    const midAngle = (start + end) * 0.5;
+                    const k = a.lane;
+                    const outerA = outerVerts[k];
+                    const outerB = outerVerts[(k + 1) % 8];
+                    const innerA = innerVerts[k];
+                    const innerB = innerVerts[(k + 1) % 8];
+
+                    const straightOuterMid = { x: (outerA.x + outerB.x) * 0.5, y: (outerA.y + outerB.y) * 0.5 };
+                    const straightInnerMid = { x: (innerA.x + innerB.x) * 0.5, y: (innerA.y + innerB.y) * 0.5 };
+
+                    const laneCenterAng = ((-112.5 + k * 45) * Math.PI) / 180;
+                    const rx = Math.cos(laneCenterAng);
+                    const ry = Math.sin(laneCenterAng);
+
+                    const pull = R * theme.midPullFactor;
+                    const outerMid = {
+                        x: straightOuterMid.x + rx * pull,
+                        y: straightOuterMid.y + ry * pull
+                    };
+                    const innerMid = {
+                        x: straightInnerMid.x + rx * (pull * 0.32),
+                        y: straightInnerMid.y + ry * (pull * 0.32)
+                    };
+
+                    const outerCtrl = {
+                        x: 2 * outerMid.x - 0.5 * (outerA.x + outerB.x),
+                        y: 2 * outerMid.y - 0.5 * (outerA.y + outerB.y)
+                    };
+                    const innerCtrl = {
+                        x: 2 * innerMid.x - 0.5 * (innerA.x + innerB.x),
+                        y: 2 * innerMid.y - 0.5 * (innerA.y + innerB.y)
+                    };
+
+                    const sectorPt = {
+                        x: center.x + Math.cos(midAngle) * sectorOffset,
+                        y: center.y + Math.sin(midAngle) * sectorOffset
+                    };
+
+                    return {
+                        ...a,
+                        center, start, end, deg, midAngle, laneCenterAng, sectorPt,
+                        innerA, innerB, innerMid, innerCtrl,
+                        outerA, outerB, outerMid, outerCtrl
+                    };
+                });
+
+                return {
+                    R, d, alpha, P1, P2, lineHalf, transHalf, dxT, dyT,
+                    outerVerts, innerVerts, laneMeta, theme
+                };
+            }
+
+            /** 6-Lane Hexagonal Warp Math Web Geometry */
+            function buildWarpGeometry(R) {
+                const outerR = R * 0.94;
+                const innerR = R * 0.43;
+                const outerVerts = [];
+                const innerVerts = [];
+
+                // Vertices at -120°, -60°, 0°, 60°, 120°, 180° -> Lanes centered at -90°, -30°, 30°, 90°, 150°, 210°
+                for (let k = 0; k < 6; k++) {
+                    const ang = ((-120 + k * 60) * Math.PI) / 180;
+                    outerVerts.push({ x: Math.cos(ang) * outerR, y: Math.sin(ang) * outerR });
+                    innerVerts.push({ x: Math.cos(ang) * innerR, y: Math.sin(ang) * innerR });
+                }
+
+                const laneMeta = [];
+                for (let k = 0; k < 6; k++) {
+                    const outerA = outerVerts[k];
+                    const outerB = outerVerts[(k + 1) % 6];
+                    const innerA = innerVerts[k];
+                    const innerB = innerVerts[(k + 1) % 6];
+                    const outerMid = { x: (outerA.x + outerB.x) * 0.5, y: (outerA.y + outerB.y) * 0.5 };
+                    const innerMid = { x: (innerA.x + innerB.x) * 0.5, y: (innerA.y + innerB.y) * 0.5 };
+                    const laneCenterAng = ((-90 + k * 60) * Math.PI) / 180;
+                    const labelPt = {
+                        x: innerMid.x + (outerMid.x - innerMid.x) * 0.78,
+                        y: innerMid.y + (outerMid.y - innerMid.y) * 0.78
+                    };
+                    laneMeta.push({
+                        lane: k,
+                        laneCenterAng,
+                        innerA, innerB, innerMid,
+                        outerA, outerB, outerMid,
+                        labelPt
+                    });
+                }
+
+                return { R, outerR, innerR, outerVerts, innerVerts, laneMeta };
+            }
+
+            function getStandardLanePoint(geo, laneIdx, t) {
+                const m = geo.laneMeta[laneIdx];
+                const u = 1 - t;
+                return {
+                    x: u * u * m.sectorPt.x + 2 * u * t * m.innerMid.x + t * t * m.outerMid.x,
+                    y: u * u * m.sectorPt.y + 2 * u * t * m.innerMid.y + t * t * m.outerMid.y
+                };
+            }
+
+            function getWarpLanePoint(wGeo, laneIdx, t) {
+                const m = wGeo.laneMeta[laneIdx];
+                return {
+                    x: m.innerMid.x + (m.outerMid.x - m.innerMid.x) * t,
+                    y: m.innerMid.y + (m.outerMid.y - m.innerMid.y) * t
+                };
+            }
+
+            function traceStandardLaneEdge(ctx, m, theme, t, moveToStart) {
+                const ax = m.innerA.x + (m.outerA.x - m.innerA.x) * t;
+                const ay = m.innerA.y + (m.outerA.y - m.innerA.y) * t;
+                const bx = m.innerB.x + (m.outerB.x - m.innerB.x) * t;
+                const by = m.innerB.y + (m.outerB.y - m.innerB.y) * t;
+                const mx = m.innerMid.x + (m.outerMid.x - m.innerMid.x) * t;
+                const my = m.innerMid.y + (m.outerMid.y - m.innerMid.y) * t;
+                const cx = m.innerCtrl.x + (m.outerCtrl.x - m.innerCtrl.x) * t;
+                const cy = m.innerCtrl.y + (m.outerCtrl.y - m.innerCtrl.y) * t;
+
+                if (moveToStart) ctx.moveTo(ax, ay);
+
+                if (theme.curveMode === 'PINCH') {
+                    ctx.lineTo(mx, my);
+                    ctx.lineTo(bx, by);
+                } else if (theme.curveMode === 'CURVE') {
+                    ctx.quadraticCurveTo(cx, cy, bx, by);
+                } else {
+                    ctx.lineTo(bx, by);
+                }
+            }
+
+            /* =========================================================
+               4. WARP MATH PROBLEM & PLAUSIBLE DISTRACTOR GENERATOR
+               ========================================================= */
+            function shuffleArray(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            /** Generate 1 exact answer + 5 plausible unique distractors in (5..175) */
+            function buildWarpChoices(answer, seedDistractors) {
+                const set = new Set([answer]);
+                const candidates = [
+                    ...seedDistractors,
+                    answer + 10,
+                    answer - 10,
+                    answer + 5,
+                    answer - 5,
+                    answer + 2,
+                    answer - 2,
+                    answer + 15,
+                    answer - 15,
+                    answer + 8,
+                    answer - 8,
+                    answer + 12,
+                    answer - 12
+                ];
+
+                for (let i = 0; i < candidates.length && set.size < 6; i++) {
+                    const v = Math.round(candidates[i]);
+                    if (v >= 5 && v <= 175 && !set.has(v)) {
+                        set.add(v);
+                    }
+                }
+
+                // Fallback fill if somehow short
+                let fallback = 14;
+                while (set.size < 6) {
+                    if (!set.has(fallback)) set.add(fallback);
+                    fallback += 7;
+                }
+
+                const choices = shuffleArray(Array.from(set));
+                return {
+                    choices,
+                    targetLane: choices.indexOf(answer)
+                };
+            }
+
+            /** Create a Complementary (90°) problem */
+            function generateComplementaryProblem() {
+                let given = 45;
+                while (given === 45) {
+                    given = 15 + Math.floor(Math.random() * 61); // 15° to 75°, never 45°
+                }
+                const answer = 90 - given;
+                const seeds = [
+                    180 - given,    // Classic complementary vs supplementary confusion
+                    given,          // Repeating the given angle
+                    answer + 10,
+                    answer - 10,
+                    answer + 5,
+                    answer - 2
+                ];
+                const { choices, targetLane } = buildWarpChoices(answer, seeds);
+                const rotDeg = [0, 90, 180, 270, 35, 130, 225, 315][Math.floor(Math.random() * 8)];
+
+                return {
+                    type: 'COMPLEMENTARY',
+                    rule: ALL_RULES.COMPLEMENTARY,
+                    given,
+                    answer,
+                    choices,
+                    targetLane,
+                    rotRad: (rotDeg * Math.PI) / 180,
+                    equation: `${given}° + ${answer}° = 90°`
+                };
+            }
+
+            /** Create a Triangle Sum (180°) problem with well-proportioned angles (25°..115°) */
+            function generateTriangleProblem() {
+                let a, b, c;
+                let attempts = 0;
+                do {
+                    a = 28 + Math.floor(Math.random() * 76); // 28..103
+                    b = 28 + Math.floor(Math.random() * 76); // 28..103
+                    c = 180 - a - b;
+                    attempts++;
+                } while ((c < 25 || c > 115 || c === a || c === b) && attempts < 60);
+
+                if (c < 25 || c > 115) {
+                    a = 48; b = 67; c = 65;
+                }
+
+                const answer = c;
+                const seeds = [
+                    Math.abs(90 - a),          // Complementary confusion
+                    a + b,                     // Adding instead of subtracting from 180
+                    Math.abs(b - a) + 20,
+                    a,                         // Repeating given angle A
+                    b,                         // Repeating given angle B
+                    answer + 10,
+                    answer - 10,
+                    answer + 5,
+                    answer - 2
+                ];
+                const { choices, targetLane } = buildWarpChoices(answer, seeds);
+                const rotRad = (Math.random() * 360 * Math.PI) / 180;
+
+                return {
+                    type: 'TRIANGLE_SUM',
+                    rule: ALL_RULES.TRIANGLE_SUM,
+                    angles: [a, b, c], // [A (given), B (given), C (missing ?)]
+                    answer,
+                    choices,
+                    targetLane,
+                    rotRad,
+                    equation: `${a}° + ${b}° + ${c}° = 180°`
+                };
+            }
+
+            /* =========================================================
+               5. GAME STATE & DOM REFERENCES
+               ========================================================= */
+            const playfield = document.getElementById('playfield');
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const ui = {
+                startScreen: document.getElementById('startScreen'),
+                gameOverScreen: document.getElementById('gameOverScreen'),
+                promptDock: document.getElementById('promptDock'),
+                ruleBanner: document.getElementById('ruleBanner'),
+                ruleText: document.getElementById('hudRuleText'),
+                score: document.getElementById('hudScore'),
+                streak: document.getElementById('hudStreak'),
+                wave: document.getElementById('hudWave'),
+                lives: document.getElementById('hudLives'),
+                hudHintToggle: document.getElementById('hudHintToggle'),
+                hudMusicBtn: document.getElementById('hudMusicBtn'),
+                hudMuteBtn: document.getElementById('hudMuteBtn'),
+                hudRulesBtn: document.getElementById('hudRulesBtn'),
+                startHintToggle: document.getElementById('startHintToggle'),
+                startPaceToggle: document.getElementById('startPaceToggle'),
+                toggleParallel: document.getElementById('toggleParallel'),
+                toggleIntersection: document.getElementById('toggleIntersection'),
+                toggleWarp: document.getElementById('toggleWarp'),
+                rulePickerWarning: document.getElementById('rulePickerWarning'),
+                playBtn: document.getElementById('playBtn'),
+                playAgainBtn: document.getElementById('playAgainBtn'),
+                changeRulesBtn: document.getElementById('changeRulesBtn'),
+                goScore: document.getElementById('goScore'),
+                goWave: document.getElementById('goWave'),
+                goStreak: document.getElementById('goStreak'),
+                accuracyBreakdown: document.getElementById('accuracyBreakdown')
+            };
+
+            function createEmptyStats() {
+                const s = {};
+                ALL_RULE_KEYS.forEach((k) => {
+                    s[k] = { correct: 0, total: 0 };
+                });
+                return s;
+            }
+
+            const state = {
+                // Modes: 'START' | 'PLAYING' | 'FEEDBACK_CORRECT' | 'FEEDBACK_WRONG' | 'WARP_TRANSITION' | 'GAMEOVER'
+                mode: 'START',
+                stageType: 'STANDARD', // 'STANDARD' (8-lane) | 'WARP' (6-lane)
+
+                // Rule Picker & Settings
+                enabledGroups: {
+                    parallel: true,
+                    intersection: true,
+                    warp: true
+                },
+                practicePace: false, // false = Arcade, true = Practice (35% slower)
+                showHints: true,
+
+                // Core Arcade Stats
+                score: 0,
+                streak: 0,
+                bestStreak: 0,
+                lives: 3,
+                wave: 1,
+                bestWave: 1,
+                totalCorrect: 0,
+                waveCorrectCount: 0,
+
+                // Standard 8-Lane Diagram State
+                slantIdx: 1,
+                alpha: (64 * Math.PI) / 180,
+                targetAlpha: (64 * Math.PI) / 180,
+                orientationIdx: 0,
+                diagramAngle: 0,
+                targetDiagramAngle: 0,
+                webThemeIdx: 0,
+                standardWavesCleared: 0,
+
+                // Active Lane & Rule State
+                activeLane: 0,
+                currentRule: ALL_RULES.CORRESPONDING,
+                anchorLane: 0,
+                targetLanes: [6], // Array so Supplementary can accept 2 valid lanes!
+
+                // Warp Math Wave State
+                warpProblem: null,
+                warpSubIndex: 0,
+                warpNextType: 'COMPLEMENTARY',
+                warpTransitionTimer: 0,
+                warpTransitionDuration: 1.1,
+                warpTransitionLabel: 'WARP WAVE!',
+                warpTransitionSub: 'MENTAL MATH STAGE',
+                warpTargetStage: 'WARP',
+
+                // Enemy Progression
+                enemyProgress: 0.06,
+                enemySpeed: 0.085,
+                enemySpin: 0,
+
+                // Feedback & FX
+                feedbackTimer: 0,
+                feedbackType: null,
+                shotLane: null,
+                laserTimer: 0,
+                screenShake: 0,
+                flashAlpha: 0,
+                flashColor: '#ff2a55',
+                waveAnnounceText: '',
+                waveAnnounceTimer: 0,
+                particles: [],
+                floatingTexts: [],
+                bgStars: [],
+
+                // Session Accuracy Stats
+                stats: createEmptyStats(),
+
+                // Logical CSS viewport metrics (NEVER use canvas.width/height for layout!)
+                viewW: 800,
+                viewH: 600,
+                dpr: 1,
+                cx: 400,
+                cy: 270,
+                radius: 220,
+                time: 0,
+
+                // Input state
+                heldKeyDir: 0,
+                keyRepeatTimer: 0,
+                lastMouseX: null,
+                lastMouseY: null
+            };
+
+            // Deep-space starfield
+            for (let i = 0; i < 48; i++) {
+                state.bgStars.push({
+                    angle: Math.random() * Math.PI * 2,
+                    dist: 0.1 + Math.random() * 0.95,
+                    speed: 0.03 + Math.random() * 0.08,
+                    size: 1 + Math.random() * 1.5
+                });
+            }
+
+            function getNumLanes() {
+                return state.stageType === 'WARP' ? 6 : 8;
+            }
+
+            function hasStandardRulesEnabled() {
+                return state.enabledGroups.parallel || state.enabledGroups.intersection;
+            }
+
+            function getEnabledStandardRules() {
+                const list = [];
+                if (state.enabledGroups.parallel) {
+                    list.push(ALL_RULES.CORRESPONDING, ALL_RULES.ALTERNATE_INTERIOR, ALL_RULES.CO_INTERIOR);
+                }
+                if (state.enabledGroups.intersection) {
+                    list.push(ALL_RULES.OPPOSITE, ALL_RULES.SUPPLEMENTARY);
+                }
+                return list;
+            }
+
+            /* =========================================================
+               6. RESPONSIVE HI-DPI CANVAS SIZING (DEAD-CENTER)
+               ========================================================= */
+            function resizeCanvas() {
+                const rect = playfield.getBoundingClientRect();
+                const viewW = Math.max(240, rect.width);
+                const viewH = Math.max(220, rect.height);
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+                state.viewW = viewW;
+                state.viewH = viewH;
+                state.dpr = dpr;
+
+                canvas.width = Math.round(viewW * dpr);
+                canvas.height = Math.round(viewH * dpr);
+
+                // Reserve ~72px below the web so the glowing prompt card NEVER overlaps the web/claw
+                const promptReserve = viewH < 430 ? 60 : 74;
+                const topMargin = 14;
+                const availH = Math.max(150, viewH - promptReserve - topMargin);
+                const availW = Math.max(200, viewW - 28);
+
+                state.radius = Math.min(availW * 0.455, availH * 0.465);
+                state.cx = viewW * 0.5;
+                state.cy = topMargin + availH * 0.5;
+
+                // Dock prompt card cleanly centered directly beneath the bottom rim of the Tempest web
+                const webBottomY = state.cy + state.radius * 1.03;
+                const remainingBottom = Math.max(8, viewH - webBottomY);
+                const promptTop = Math.min(viewH - 52, webBottomY + Math.max(6, (remainingBottom - 44) * 0.35));
+                ui.promptDock.style.top = `${Math.round(promptTop)}px`;
+                ui.promptDock.style.bottom = 'auto';
+            }
+
+            if (typeof ResizeObserver !== 'undefined') {
+                const ro = new ResizeObserver(() => resizeCanvas());
+                ro.observe(playfield);
+            }
+            window.addEventListener('resize', resizeCanvas);
+
+            /* =========================================================
+               7. HUD, RULE PICKER & PROMPT UPDATES
+               ========================================================= */
+            function updateRulePickerUI() {
+                const map = [
+                    { el: ui.toggleParallel, key: 'parallel' },
+                    { el: ui.toggleIntersection, key: 'intersection' },
+                    { el: ui.toggleWarp, key: 'warp' }
+                ];
+                map.forEach(({ el, key }) => {
+                    const active = state.enabledGroups[key];
+                    el.classList.toggle('active', active);
+                    el.setAttribute('aria-checked', String(active));
+                    const icon = el.querySelector('.check-icon');
+                    if (icon) icon.style.opacity = active ? '1' : '0';
+                });
+            }
+
+            function toggleRuleGroup(groupKey, cardEl) {
+                const current = state.enabledGroups[groupKey];
+                const activeCount = Object.values(state.enabledGroups).filter(Boolean).length;
+                if (current && activeCount <= 1) {
+                    // Require at least one rule group enabled
+                    audio.playWrongExplosion();
+                    cardEl.classList.remove('warn-shake');
+                    void cardEl.offsetWidth;
+                    cardEl.classList.add('warn-shake');
+                    ui.rulePickerWarning.style.opacity = '1';
+                    setTimeout(() => { ui.rulePickerWarning.style.opacity = '0'; }, 1600);
+                    return;
+                }
+                state.enabledGroups[groupKey] = !current;
+                audio.playMoveTick();
+                updateRulePickerUI();
+            }
+
+            function updatePaceButton() {
+                ui.startPaceToggle.textContent = state.practicePace
+                    ? 'PACE: PRACTICE (35% SLOWER)'
+                    : 'PACE: ARCADE (STANDARD)';
+            }
+
+            function updateHintButtons() {
+                ui.startHintToggle.textContent = state.showHints
+                    ? 'HINTS: ON (F / Z / C / X / 90° / 180°)'
+                    : 'PRO MODE (TERMS ONLY)';
+                ui.hudHintToggle.textContent = state.showHints ? 'HINTS: ON' : 'PRO MODE';
+
+                if (state.mode !== 'START' && state.mode !== 'GAMEOVER') {
+                    updateRulePrompt(false);
+                }
+            }
+
+            function updateMuteButtons() {
+                ui.hudMuteBtn.textContent = audio.muted ? 'SFX: OFF' : 'SFX: ON';
+            }
+
+            function updateMusicButton() {
+                ui.hudMusicBtn.textContent = audio.musicEnabled ? 'MUSIC: ON' : 'MUSIC: OFF';
+            }
+
+            function updateRulePrompt(pulse = true) {
+                const r = state.currentRule;
+                const label = state.showHints
+                    ? `SHOOT THE: ${r.term} (${r.hint})`
+                    : `SHOOT THE: ${r.term}`;
+
+                ui.ruleText.textContent = label;
+                ui.ruleBanner.style.borderColor = r.color;
+                ui.ruleBanner.style.setProperty('--prompt-glow', r.glow);
+                ui.ruleText.style.color = r.color;
+                ui.ruleText.style.textShadow = `0 0 10px ${r.glow}, 0 0 22px ${r.glow}`;
+
+                if (pulse) {
+                    ui.ruleBanner.classList.remove('prompt-pulse');
+                    void ui.ruleBanner.offsetWidth;
+                    ui.ruleBanner.classList.add('prompt-pulse');
+                }
+            }
+
+            function renderLives() {
+                let html = '';
+                for (let i = 0; i < 3; i++) {
+                    const active = i < state.lives;
+                    html += `
+                        <svg viewBox="0 0 28 22" class="w-4 h-3.5 sm:w-5 sm:h-4 transition-opacity duration-200 ${active ? 'opacity-100' : 'opacity-20'}">
+                            <polygon points="2,18 14,2 26,18 20,18 14,10 8,18" fill="${active ? '#ffe600' : '#444'}" stroke="${active ? '#fff599' : '#555'}" stroke-width="1.5"/>
+                        </svg>
+                    `;
+                }
+                ui.lives.innerHTML = html;
+            }
+
+            function updateHUD() {
+                ui.score.textContent = String(state.score).padStart(6, '0');
+                const mult = Math.min(5, 1 + Math.floor(state.streak / 3));
+                ui.streak.innerHTML = `${state.streak} <span class="text-[10px] text-cyan-300">x${mult}</span>`;
+                ui.wave.textContent = state.stageType === 'WARP' ? `${state.wave}W` : String(state.wave);
+                renderLives();
+            }
+
+            /* =========================================================
+               8. GAME FLOW, STANDARD WAVES & WARP MATH WAVES
+               ========================================================= */
+            function openRulesMenu() {
+                state.mode = 'START';
+                state.heldKeyDir = 0;
+                ui.promptDock.classList.add('opacity-0');
+                ui.gameOverScreen.classList.add('hidden');
+                ui.startScreen.classList.remove('hidden');
+                updateRulePickerUI();
+                updatePaceButton();
+                updateHintButtons();
+            }
+
+            function startNewGame() {
+                audio.init();
+                if (audio.musicEnabled) {
+                    audio.startMusic();
+                }
+
+                state.score = 0;
+                state.streak = 0;
+                state.bestStreak = 0;
+                state.lives = 3;
+                state.wave = 1;
+                state.bestWave = 1;
+                state.totalCorrect = 0;
+                state.waveCorrectCount = 0;
+                state.standardWavesCleared = 0;
+
+                state.slantIdx = 1;
+                state.alpha = (TRANSVERSAL_SLANTS_DEG[state.slantIdx] * Math.PI) / 180;
+                state.targetAlpha = state.alpha;
+                state.orientationIdx = 0;
+                state.diagramAngle = 0;
+                state.targetDiagramAngle = 0;
+                state.webThemeIdx = 0;
+
+                state.activeLane = 0;
+                state.particles = [];
+                state.floatingTexts = [];
+                state.waveAnnounceText = '';
+                state.waveAnnounceTimer = 0;
+                state.warpSubIndex = 0;
+                state.warpNextType = 'COMPLEMENTARY';
+                state.stats = createEmptyStats();
+
+                ui.startScreen.classList.add('hidden');
+                ui.gameOverScreen.classList.add('hidden');
+                resizeCanvas();
+
+                // Determine starting stage based on Rule Picker
+                if (!hasStandardRulesEnabled() && state.enabledGroups.warp) {
+                    beginWarpTransition('WARP', 'WARP WAVE 1!', 'COMPLEMENTARY & TRIANGLE SUM');
+                } else {
+                    state.stageType = 'STANDARD';
+                    ui.promptDock.classList.remove('opacity-0');
+                    audio.playWaveChime();
+                    updateHUD();
+                    spawnStandardRound();
+                }
+            }
+
+            /** Trigger 1.1s classic Tempest tunnel-zoom transition */
+            function beginWarpTransition(targetStage, label, subLabel) {
+                state.mode = 'WARP_TRANSITION';
+                state.warpTargetStage = targetStage;
+                state.warpTransitionTimer = state.warpTransitionDuration;
+                state.warpTransitionLabel = label;
+                state.warpTransitionSub = subLabel;
+                state.heldKeyDir = 0;
+                ui.promptDock.classList.add('opacity-0');
+                audio.playWarpSweep();
+                updateHUD();
+            }
+
+            function advanceOrientation() {
+                const step = 1 + Math.floor(Math.random() * 2);
+                state.orientationIdx = (state.orientationIdx + step) % ORIENTATIONS_DEG.length;
+                const desiredMod = (ORIENTATIONS_DEG[state.orientationIdx] * Math.PI) / 180;
+                const currentMod = ((state.targetDiagramAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                let delta = normalizeAngle(desiredMod - currentMod);
+                if (Math.abs(delta) < 0.35) delta += Math.PI * 0.5;
+                state.targetDiagramAngle += delta;
+            }
+
+            function advanceTransversalSlant() {
+                state.slantIdx = (state.slantIdx + 1) % TRANSVERSAL_SLANTS_DEG.length;
+                state.targetAlpha = (TRANSVERSAL_SLANTS_DEG[state.slantIdx] * Math.PI) / 180;
+            }
+
+            function computeBaseEnemySpeed() {
+                const base = Math.min(0.28, 0.084 + state.totalCorrect * 0.0062 + Math.min(6, state.streak) * 0.0035);
+                const paceMult = state.practicePace ? 0.65 : 1.0; // Practice = 35% slower
+                return base * paceMult;
+            }
+
+            function spawnStandardRound() {
+                state.stageType = 'STANDARD';
+                if (state.activeLane >= 8) state.activeLane = state.activeLane % 8;
+
+                const pool = getEnabledStandardRules();
+                const prevRuleId = state.currentRule ? state.currentRule.id : null;
+                const prevAnchor = state.anchorLane;
+
+                let rule = pool[Math.floor(Math.random() * pool.length)];
+                let anchor = rule.validAnchors[Math.floor(Math.random() * rule.validAnchors.length)];
+
+                if (pool.length > 1 && rule.id === prevRuleId && anchor === prevAnchor) {
+                    const idx = (pool.indexOf(rule) + 1) % pool.length;
+                    rule = pool[idx];
+                    anchor = rule.validAnchors[Math.floor(Math.random() * rule.validAnchors.length)];
+                }
+
+                if (state.totalCorrect > 0) {
+                    advanceTransversalSlant();
+                }
+
+                state.currentRule = rule;
+                state.anchorLane = anchor;
+                state.targetLanes = rule.getTargets(anchor);
+
+                state.enemyProgress = 0.06;
+                state.enemySpeed = computeBaseEnemySpeed();
+
+                state.mode = 'PLAYING';
+                state.feedbackType = null;
+                state.shotLane = null;
+                ui.promptDock.classList.remove('opacity-0');
+                updateHUD();
+                updateRulePrompt(true);
+            }
+
+            function spawnWarpRound() {
+                state.stageType = 'WARP';
+                if (state.activeLane >= 6) state.activeLane = state.activeLane % 6;
+
+                // Alternate cleanly between Complementary (90°) and Triangle Sum (180°)
+                const prob = state.warpNextType === 'COMPLEMENTARY'
+                    ? generateComplementaryProblem()
+                    : generateTriangleProblem();
+                state.warpNextType = state.warpNextType === 'COMPLEMENTARY' ? 'TRIANGLE_SUM' : 'COMPLEMENTARY';
+
+                state.warpProblem = prob;
+                state.currentRule = prob.rule;
+                state.targetLanes = [prob.targetLane];
+
+                state.enemyProgress = 0.06;
+                // Slower enemy advance (~55% of standard speed) so students can calculate mentally
+                state.enemySpeed = computeBaseEnemySpeed() * 0.55;
+
+                state.mode = 'PLAYING';
+                state.feedbackType = null;
+                state.shotLane = null;
+                ui.promptDock.classList.remove('opacity-0');
+                updateHUD();
+                updateRulePrompt(true);
+            }
+
+            function spawnExplosion(x, y, color, count = 24) {
+                for (let i = 0; i < count; i++) {
+                    const ang = Math.random() * Math.PI * 2;
+                    const spd = 65 + Math.random() * 240;
+                    state.particles.push({
+                        x, y,
+                        vx: Math.cos(ang) * spd,
+                        vy: Math.sin(ang) * spd,
+                        life: 0.4 + Math.random() * 0.45,
+                        maxLife: 0.85,
+                        color: i % 4 === 0 ? '#ffffff' : color,
+                        size: 2 + Math.random() * 2.5
+                    });
+                }
+            }
+
+            function spawnFloatingText(x, y, text, color, duration = 1.05) {
+                state.floatingTexts.push({
+                    x, y, text, color,
+                    life: duration,
+                    maxLife: duration
+                });
+            }
+
+            function fireLaser() {
+                if (state.mode !== 'PLAYING') return;
+
+                audio.playLaser();
+                const firedLane = state.activeLane;
+                state.shotLane = firedLane;
+                state.laserTimer = 0.24;
+
+                const ruleKey = state.currentRule.id;
+                state.stats[ruleKey].total += 1;
+
+                const isHit = state.targetLanes.includes(firedLane);
+
+                if (isHit) {
+                    state.stats[ruleKey].correct += 1;
+                    state.totalCorrect += 1;
+                    state.waveCorrectCount += 1;
+                    state.streak += 1;
+                    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+                    const mult = Math.min(5, 1 + Math.floor((state.streak - 1) / 3));
+                    const speedBonus = Math.round((1 - state.enemyProgress) * 50);
+                    const gained = (100 + speedBonus) * mult;
+                    state.score += gained;
+
+                    audio.playCorrectZap();
+                    state.screenShake = 6;
+
+                    if (state.stageType === 'STANDARD') {
+                        const theme = WEB_THEMES[state.webThemeIdx];
+                        const geo = buildStandardGeometry(state.radius, state.alpha, theme);
+                        for (let lane = 0; lane < 8; lane++) {
+                            if (lane === state.anchorLane) continue;
+                            const pt = getStandardLanePoint(geo, lane, state.enemyProgress);
+                            const col = lane === firedLane ? '#39ff14' : '#ff00cc';
+                            spawnExplosion(pt.x, pt.y, col, lane === firedLane ? 28 : 11);
+                        }
+                        spawnFloatingText(0, -state.radius * 0.56, `+${gained} ${state.currentRule.shortLabel.toUpperCase()}!`, '#39ff14', 1.0);
+
+                        // Rotate diagram every 2 correct shots on the standard web
+                        if (state.waveCorrectCount % 2 === 0 && state.waveCorrectCount < 4) {
+                            advanceOrientation();
+                            state.waveAnnounceText = 'ROTATING GRID!';
+                            state.waveAnnounceTimer = 1.0;
+                        }
+                    } else {
+                        // Warp Math Wave hit
+                        const wGeo = buildWarpGeometry(state.radius);
+                        for (let lane = 0; lane < 6; lane++) {
+                            const pt = getWarpLanePoint(wGeo, lane, state.enemyProgress);
+                            const col = lane === firedLane ? '#39ff14' : '#ff00cc';
+                            spawnExplosion(pt.x, pt.y, col, lane === firedLane ? 30 : 12);
+                        }
+                        spawnFloatingText(0, -state.radius * 0.58, `${state.warpProblem.equation} (+${gained})`, '#39ff14', 1.15);
+                    }
+
+                    state.mode = 'FEEDBACK_CORRECT';
+                    state.feedbackType = 'CORRECT';
+                    state.feedbackTimer = state.stageType === 'WARP' ? 0.95 : 0.72;
+                    updateHUD();
+                } else {
+                    let msg;
+                    if (state.stageType === 'WARP') {
+                        msg = state.warpProblem.equation;
+                    } else if (firedLane === state.anchorLane) {
+                        msg = `ANCHOR LANE — ${state.currentRule.hint}`;
+                    } else {
+                        msg = `WRONG — ${state.currentRule.hint}`;
+                    }
+                    handleMistake(msg);
+                }
+            }
+
+            function handleMistake(reasonText) {
+                audio.playWrongExplosion();
+                state.lives -= 1;
+                state.streak = 0;
+                state.screenShake = 11;
+                state.flashAlpha = 0.38;
+                state.flashColor = '#ff2a55';
+
+                spawnFloatingText(0, -state.radius * 0.58, reasonText, '#ff4d79', 1.35);
+
+                state.mode = 'FEEDBACK_WRONG';
+                state.feedbackType = 'WRONG';
+                state.feedbackTimer = 1.38;
+                updateHUD();
+            }
+
+            /** Decide what comes next after feedback finishes */
+            function advanceAfterFeedback() {
+                if (state.lives <= 0) {
+                    triggerGameOver();
+                    return;
+                }
+
+                if (state.stageType === 'STANDARD') {
+                    // 4 correct shots completes a Standard Wave
+                    if (state.waveCorrectCount >= 4) {
+                        state.waveCorrectCount = 0;
+                        state.standardWavesCleared += 1;
+                        state.wave += 1;
+                        if (state.wave > state.bestWave) state.bestWave = state.wave;
+
+                        // Trigger Warp Math Wave every 3rd wave (3, 6, 9, ...) if enabled
+                        if (state.enabledGroups.warp && state.wave % 3 === 0) {
+                            state.warpSubIndex = 0;
+                            beginWarpTransition('WARP', `WARP WAVE ${state.wave}!`, 'COMPLEMENTARY & TRIANGLE SUM');
+                            return;
+                        }
+
+                        // Otherwise advance to next Standard Web Shape & rotate
+                        state.webThemeIdx = state.standardWavesCleared % WEB_THEMES.length;
+                        advanceOrientation();
+                        audio.playWaveChime();
+                        state.waveAnnounceText = `WAVE ${state.wave} — ${WEB_THEMES[state.webThemeIdx].name}`;
+                        state.waveAnnounceTimer = 1.65;
+                    }
+                    spawnStandardRound();
+                } else {
+                    // WARP stage: 3 correct problems per Warp Wave
+                    if (state.waveCorrectCount >= 3) {
+                        state.waveCorrectCount = 0;
+                        state.wave += 1;
+                        if (state.wave > state.bestWave) state.bestWave = state.wave;
+
+                        if (hasStandardRulesEnabled()) {
+                            state.webThemeIdx = state.standardWavesCleared % WEB_THEMES.length;
+                            advanceOrientation();
+                            beginWarpTransition('STANDARD', `WAVE ${state.wave}!`, WEB_THEMES[state.webThemeIdx].name);
+                        } else {
+                            // Warp-Only mode: chain smoothly into next Warp Wave
+                            beginWarpTransition('WARP', `WARP WAVE ${state.wave}!`, 'SPEED INCREASING');
+                        }
+                        return;
+                    }
+                    spawnWarpRound();
+                }
+            }
+
+            function triggerGameOver() {
+                state.mode = 'GAMEOVER';
+                state.heldKeyDir = 0;
+                ui.promptDock.classList.add('opacity-0');
+                ui.gameOverScreen.classList.remove('hidden');
+
+                ui.goScore.textContent = state.score.toLocaleString();
+                ui.goWave.textContent = String(state.bestWave);
+                ui.goStreak.textContent = String(state.bestStreak);
+
+                // List ONLY rules encountered in this session
+                const encountered = ALL_RULE_KEYS.filter((k) => state.stats[k].total > 0);
+                if (encountered.length === 0) {
+                    ui.accuracyBreakdown.innerHTML = `<div class="text-center text-xs text-slate-400 py-2">No shots recorded this session.</div>`;
+                    return;
+                }
+
+                ui.accuracyBreakdown.innerHTML = encountered.map((key) => {
+                    const rule = ALL_RULES[key];
+                    const st = state.stats[key];
+                    const pct = Math.round((st.correct / st.total) * 100);
+                    return `
+                        <div>
+                            <div class="flex items-center justify-between text-xs sm:text-sm mb-1">
+                                <span class="font-bold tracking-wide" style="color:${rule.color}">
+                                    ${rule.shortLabel} <span class="text-slate-400 text-[11px]">(${rule.hint})</span>
+                                </span>
+                                <span class="font-arcade font-bold text-white">
+                                    ${pct}% <span class="text-slate-400 font-sans text-xs font-normal">(${st.correct}/${st.total})</span>
+                                </span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-900 border border-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%; background:${rule.color}; box-shadow: 0 0 10px ${rule.glow};"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            /* =========================================================
+               9. SEAMLESS CONTROLS (KEYBOARD + MOUSE/TRACKPAD + TOUCH)
+               ========================================================= */
+            function moveClaw(delta) {
+                if (state.mode !== 'PLAYING' && state.mode !== 'FEEDBACK_CORRECT') return;
+                const n = getNumLanes();
+                const next = (state.activeLane + delta + n) % n;
+                if (next !== state.activeLane) {
+                    state.activeLane = next;
+                    audio.playMoveTick();
+                }
+            }
+
+            function aimClawAtPointer(clientX, clientY) {
+                if (state.mode !== 'PLAYING' && state.mode !== 'FEEDBACK_CORRECT') return;
+                const rect = playfield.getBoundingClientRect();
+                const mx = (clientX - rect.left) - state.cx;
+                const my = (clientY - rect.top) - state.cy;
+
+                if (mx * mx + my * my < 64) return;
+
+                const screenAngle = Math.atan2(my, mx);
+                const n = getNumLanes();
+                const refAngle = state.stageType === 'STANDARD'
+                    ? normalizeAngle(screenAngle - state.diagramAngle)
+                    : screenAngle;
+
+                let bestLane = state.activeLane;
+                let bestDiff = Infinity;
+                for (let k = 0; k < n; k++) {
+                    const laneAngle = state.stageType === 'STANDARD'
+                        ? normalizeAngle(((-112.5 + k * 45) * Math.PI) / 180)
+                        : normalizeAngle(((-90 + k * 60) * Math.PI) / 180);
+                    const diff = Math.abs(normalizeAngle(refAngle - laneAngle));
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        bestLane = k;
+                    }
+                }
+
+                if (bestLane !== state.activeLane) {
+                    state.activeLane = bestLane;
+                    audio.playMoveTick();
+                }
+            }
+
+            const PREVENT_SCROLL_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space']);
+
+            window.addEventListener('keydown', (e) => {
+                if (PREVENT_SCROLL_KEYS.has(e.code)) {
+                    e.preventDefault();
+                }
+
+                // Independent 'M' shortcut to toggle retrowave music anywhere
+                if (e.code === 'KeyM' && !e.repeat) {
+                    audio.toggleMusic();
+                    updateMusicButton();
+                    return;
+                }
+
+                if ((state.mode === 'START' || state.mode === 'GAMEOVER') && (e.code === 'Space' || e.code === 'Enter')) {
+                    if (!e.repeat) startNewGame();
+                    return;
+                }
+
+                if (state.mode !== 'PLAYING' && state.mode !== 'FEEDBACK_CORRECT') return;
+
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                    if (!e.repeat) {
+                        moveClaw(-1);
+                        state.heldKeyDir = -1;
+                        state.keyRepeatTimer = 0.21;
+                    }
+                } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                    if (!e.repeat) {
+                        moveClaw(1);
+                        state.heldKeyDir = 1;
+                        state.keyRepeatTimer = 0.21;
+                    }
+                } else if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                    if (!e.repeat) fireLaser();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && state.heldKeyDir === -1) {
+                    state.heldKeyDir = 0;
+                } else if ((e.code === 'ArrowRight' || e.code === 'KeyD') && state.heldKeyDir === 1) {
+                    state.heldKeyDir = 0;
+                }
+            });
+
+            window.addEventListener('blur', () => { state.heldKeyDir = 0; });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (state.lastMouseX !== null && state.lastMouseY !== null) {
+                    const dx = e.clientX - state.lastMouseX;
+                    const dy = e.clientY - state.lastMouseY;
+                    if (dx * dx + dy * dy < 9) return; // 3px threshold
+                }
+                state.lastMouseX = e.clientX;
+                state.lastMouseY = e.clientY;
+                aimClawAtPointer(e.clientX, e.clientY);
+            });
+
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                audio.init();
+                state.lastMouseX = e.clientX;
+                state.lastMouseY = e.clientY;
+                aimClawAtPointer(e.clientX, e.clientY);
+                fireLaser();
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                if (state.mode !== 'PLAYING') return;
+                e.preventDefault();
+                audio.init();
+                const touch = e.touches[0];
+                if (touch) {
+                    aimClawAtPointer(touch.clientX, touch.clientY);
+                    fireLaser();
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (state.mode !== 'PLAYING') return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                if (touch) aimClawAtPointer(touch.clientX, touch.clientY);
+            }, { passive: false });
+
+            // Rule Picker & HUD Listeners
+            [
+                [ui.toggleParallel, 'parallel'],
+                [ui.toggleIntersection, 'intersection'],
+                [ui.toggleWarp, 'warp']
+            ].forEach(([el, key]) => {
+                el.addEventListener('click', () => toggleRuleGroup(key, el));
+                el.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        e.preventDefault();
+                        toggleRuleGroup(key, el);
+                    }
+                });
+            });
+
+            ui.startPaceToggle.addEventListener('click', () => {
+                state.practicePace = !state.practicePace;
+                audio.playMoveTick();
+                updatePaceButton();
+            });
+
+            function handleToggleHints() {
+                state.showHints = !state.showHints;
+                audio.playMoveTick();
+                updateHintButtons();
+            }
+
+            ui.startHintToggle.addEventListener('click', handleToggleHints);
+            ui.hudHintToggle.addEventListener('click', handleToggleHints);
+
+            ui.hudMuteBtn.addEventListener('click', () => {
+                audio.toggleMute();
+                updateMuteButtons();
+                if (!audio.muted) audio.playMoveTick();
+            });
+
+            ui.hudMusicBtn.addEventListener('click', () => {
+                audio.toggleMusic();
+                updateMusicButton();
+            });
+
+            ui.hudRulesBtn.addEventListener('click', () => {
+                audio.playMoveTick();
+                openRulesMenu();
+            });
+
+            ui.playBtn.addEventListener('click', startNewGame);
+            ui.playAgainBtn.addEventListener('click', startNewGame);
+            ui.changeRulesBtn.addEventListener('click', () => {
+                audio.playMoveTick();
+                openRulesMenu();
+            });
+
+            /* =========================================================
+               10. VECTOR RENDERING ENGINE (STANDARD + WARP + ZOOM)
+               ========================================================= */
+
+            function drawStarfield(dt, warpBoost = 1) {
+                ctx.save();
+                ctx.translate(state.cx, state.cy);
+                const maxSpan = Math.max(state.viewW, state.viewH) * 0.65;
+                for (let i = 0; i < state.bgStars.length; i++) {
+                    const st = state.bgStars[i];
+                    st.dist += st.speed * dt * warpBoost;
+                    if (st.dist > 1.35) {
+                        st.dist = 0.05;
+                        st.angle = Math.random() * Math.PI * 2;
+                    }
+                    const r = st.dist * maxSpan;
+                    const x = Math.cos(st.angle) * r;
+                    const y = Math.sin(st.angle) * r;
+                    const alpha = Math.min(0.55, st.dist * 0.55);
+                    if (warpBoost > 2) {
+                        const rPrev = Math.max(0, (st.dist - 0.08) * maxSpan);
+                        ctx.strokeStyle = `rgba(0, 243, 255, ${alpha})`;
+                        ctx.lineWidth = 1.6;
+                        ctx.beginPath();
+                        ctx.moveTo(Math.cos(st.angle) * rPrev, Math.sin(st.angle) * rPrev);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    } else {
+                        ctx.fillStyle = `rgba(115, 215, 255, ${alpha})`;
+                        ctx.fillRect(x, y, st.size, st.size);
+                    }
+                }
+                ctx.restore();
+            }
+
+            /** Classic Tempest Tunnel-Zoom Warp Transition */
+            function drawWarpTransition() {
+                const progress = 1 - Math.max(0, state.warpTransitionTimer / state.warpTransitionDuration);
+                const sides = state.warpTargetStage === 'WARP' ? 6 : 8;
+                const ringCount = 9;
+
+                ctx.save();
+                ctx.translate(state.cx, state.cy);
+
+                for (let i = 0; i < ringCount; i++) {
+                    const t = ((i / ringCount) + progress * 2.4) % 1;
+                    const scale = Math.pow(t, 1.85) * 1.45;
+                    const r = state.radius * scale;
+                    const alpha = Math.sin(t * Math.PI) * 0.9;
+                    const col = i % 2 === 0 ? '#ff00cc' : '#00f3ff';
+
+                    ctx.save();
+                    ctx.rotate(progress * Math.PI * 0.65 + t * 0.35);
+                    ctx.beginPath();
+                    for (let k = 0; k <= sides; k++) {
+                        const ang = (k / sides) * Math.PI * 2;
+                        const x = Math.cos(ang) * r;
+                        const y = Math.sin(ang) * r;
+                        if (k === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.strokeStyle = col;
+                    ctx.globalAlpha = alpha;
+                    ctx.lineWidth = 1.5 + t * 3;
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = 16;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Crisp Warp Banner
+                const fontSize = Math.max(20, Math.min(38, Math.round(state.radius * 0.16)));
+                ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffe600';
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 20;
+                ctx.fillText(state.warpTransitionLabel, 0, -10);
+
+                const subSize = Math.max(11, Math.min(17, Math.round(state.radius * 0.068)));
+                ctx.font = `700 ${subSize}px "Share Tech Mono", monospace`;
+                ctx.fillStyle = '#00f3ff';
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 12;
+                ctx.fillText(state.warpTransitionSub, 0, fontSize * 0.72);
+
+                ctx.restore();
+            }
+
+            /* --- STANDARD 8-LANE RENDERERS --- */
+
+            function drawStandardWeb(geo) {
+                const activeLane = state.activeLane;
+                const theme = geo.theme;
+                const depthLevels = [0.0, 0.33, 0.66, 1.0];
+
+                // Active lane highlight fill
+                const aMeta = geo.laneMeta[activeLane];
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(aMeta.innerA.x, aMeta.innerA.y);
+                ctx.lineTo(aMeta.outerA.x, aMeta.outerA.y);
+                traceStandardLaneEdge(ctx, aMeta, theme, 1.0, false);
+                ctx.lineTo(aMeta.innerB.x, aMeta.innerB.y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 230, 0, 0.09)';
+                ctx.fill();
+                ctx.restore();
+
+                // Depth rings
+                depthLevels.forEach((t, idx) => {
+                    const isOuter = idx === depthLevels.length - 1;
+                    const isInner = idx === 0;
+                    ctx.save();
+                    ctx.beginPath();
+                    for (let k = 0; k < 8; k++) {
+                        traceStandardLaneEdge(ctx, geo.laneMeta[k], theme, t, k === 0);
+                    }
+                    ctx.closePath();
+                    ctx.strokeStyle = isOuter ? theme.rimColor : isInner ? theme.innerColor : theme.ringColor;
+                    ctx.lineWidth = isOuter ? 2.6 : 1.15;
+                    if (isOuter) {
+                        ctx.shadowColor = theme.rimColor;
+                        ctx.shadowBlur = 14;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+                // Radial spokes
+                for (let k = 0; k < 8; k++) {
+                    const isBorder = (k === activeLane || k === (activeLane + 1) % 8);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(geo.innerVerts[k].x, geo.innerVerts[k].y);
+                    ctx.lineTo(geo.outerVerts[k].x, geo.outerVerts[k].y);
+                    ctx.strokeStyle = isBorder ? '#ffe600' : theme.spokeColor;
+                    ctx.lineWidth = isBorder ? 2.8 : 1.45;
+                    if (isBorder) {
+                        ctx.shadowColor = '#ffe600';
+                        ctx.shadowBlur = 14;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Active outer rim highlight
+                ctx.save();
+                ctx.beginPath();
+                traceStandardLaneEdge(ctx, aMeta, theme, 1.0, true);
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 4;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 16;
+                ctx.stroke();
+                ctx.restore();
+
+                // Dashed guide tethers from angle pockets to lane entries
+                for (let k = 0; k < 8; k++) {
+                    const m = geo.laneMeta[k];
+                    const isAct = k === activeLane;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(m.sectorPt.x, m.sectorPt.y);
+                    ctx.lineTo(m.innerMid.x, m.innerMid.y);
+                    ctx.strokeStyle = isAct ? 'rgba(255, 230, 0, 0.55)' : 'rgba(0, 243, 255, 0.16)';
+                    ctx.lineWidth = isAct ? 1.8 : 1;
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            function drawParallelChevrons(x, y, size) {
+                ctx.beginPath();
+                ctx.moveTo(x - size, y - size * 0.65);
+                ctx.lineTo(x - size * 0.22, y);
+                ctx.lineTo(x - size, y + size * 0.65);
+                ctx.moveTo(x - size * 0.16, y - size * 0.65);
+                ctx.lineTo(x + size * 0.62, y);
+                ctx.lineTo(x - size * 0.16, y + size * 0.65);
+                ctx.stroke();
+            }
+
+            function drawParallelDiagram(geo) {
+                const { d, lineHalf, transHalf, dxT, dyT, P1, P2 } = geo;
+                ctx.save();
+                ctx.lineCap = 'round';
+
+                // Two Parallel Lines
+                ctx.strokeStyle = '#00f3ff';
+                ctx.lineWidth = 2.6;
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(-lineHalf, -d);
+                ctx.lineTo(lineHalf, -d);
+                ctx.moveTo(-lineHalf, d);
+                ctx.lineTo(lineHalf, d);
+                ctx.stroke();
+
+                // '>>' Parallel Markers
+                ctx.lineWidth = 2.1;
+                const arrowX = Math.min(lineHalf - geo.R * 0.045, Math.max(Math.abs(P1.x), Math.abs(P2.x)) + geo.R * 0.115);
+                drawParallelChevrons(arrowX, -d, geo.R * 0.025);
+                drawParallelChevrons(arrowX,  d, geo.R * 0.025);
+
+                // Transversal Line
+                ctx.strokeStyle = '#e8f9ff';
+                ctx.lineWidth = 2.6;
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(-dxT * transHalf, -dyT * transHalf);
+                ctx.lineTo( dxT * transHalf,  dyT * transHalf);
+                ctx.stroke();
+
+                // Intersection Nodes
+                ctx.fillStyle = '#ffffff';
+                [P1, P2].forEach((p) => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                ctx.restore();
+            }
+
+            function drawAngleHighlight(geo, laneIdx, strokeColor, fillColor, showDegree = false, badgeText = '') {
+                const m = geo.laneMeta[laneIdx];
+                const arcR = geo.R * 0.08;
+                const pulse = 1 + Math.sin(state.time * 8) * 0.07;
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(m.center.x, m.center.y);
+                ctx.arc(m.center.x, m.center.y, arcR * pulse, m.start, m.end, false);
+                ctx.closePath();
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(m.center.x, m.center.y, arcR * pulse, m.start, m.end, false);
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 3.2;
+                ctx.shadowColor = strokeColor;
+                ctx.shadowBlur = 14;
+                ctx.stroke();
+
+                if (showDegree) {
+                    const labelR = arcR * 1.38;
+                    const lx = m.center.x + Math.cos(m.midAngle) * labelR;
+                    const ly = m.center.y + Math.sin(m.midAngle) * labelR;
+                    ctx.save();
+                    ctx.translate(lx, ly);
+                    ctx.rotate(-state.diagramAngle);
+                    ctx.font = `bold ${Math.max(10, Math.round(geo.R * 0.044))}px "Share Tech Mono", monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = strokeColor;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(`${m.deg}°`, 0, 0);
+                    ctx.restore();
+                }
+
+                if (badgeText) {
+                    const badgePt = getStandardLanePoint(geo, laneIdx, 0.64);
+                    ctx.save();
+                    ctx.translate(badgePt.x, badgePt.y);
+                    ctx.rotate(-state.diagramAngle);
+                    const fontSize = Math.max(9, Math.round(geo.R * 0.038));
+                    ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
+                    const textW = ctx.measureText(badgeText).width;
+                    const padX = 6;
+                    const padY = 4;
+
+                    ctx.fillStyle = 'rgba(3, 8, 22, 0.92)';
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = 1.6;
+                    ctx.shadowColor = strokeColor;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.roundRect(-textW * 0.5 - padX, -fontSize * 0.5 - padY, textW + padX * 2, fontSize + padY * 2, 5);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(badgeText, 0, 0.5);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+
+            /**
+             * Trace exact glowing vector overlay for F, Z, C, X (Opposite), or Straight Line (Supplementary)
+             */
+            function drawRuleShapeOverlay(geo, rule, anchorLane, chosenTargetLane) {
+                const a = ANGLES[anchorLane];
+                const b = ANGLES[chosenTargetLane];
+                const { P1, P2, dxT, dyT } = geo;
+                const armLen = geo.R * 0.21;
+                const extLen = geo.R * 0.13;
+
+                ctx.save();
+                ctx.strokeStyle = rule.color;
+                ctx.lineWidth = 5.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = rule.color;
+                ctx.shadowBlur = 22;
+                ctx.beginPath();
+
+                if (rule.id === 'OPPOSITE') {
+                    // Glowing neon 'X' centered at the anchor vertex
+                    const V = a.line === 0 ? P1 : P2;
+                    const xArm = geo.R * 0.17;
+                    ctx.moveTo(V.x - xArm, V.y);
+                    ctx.lineTo(V.x + xArm, V.y);
+                    ctx.moveTo(V.x - dxT * xArm, V.y - dyT * xArm);
+                    ctx.lineTo(V.x + dxT * xArm, V.y + dyT * xArm);
+                } else if (rule.id === 'SUPPLEMENTARY') {
+                    // Glowing straight line (180°) shared by the anchor and adjacent target angle
+                    const V = a.line === 0 ? P1 : P2;
+                    const sArm = geo.R * 0.24;
+                    if (a.vert === b.vert) {
+                        // Shared parallel line
+                        ctx.moveTo(V.x - sArm, V.y);
+                        ctx.lineTo(V.x + sArm, V.y);
+                    } else {
+                        // Shared transversal line
+                        ctx.moveTo(V.x - dxT * sArm, V.y - dyT * sArm);
+                        ctx.lineTo(V.x + dxT * sArm, V.y + dyT * sArm);
+                    }
+                } else {
+                    // F, Z, or C across both parallel lines
+                    const topAngle = a.line === 0 ? a : b;
+                    const botAngle = a.line === 1 ? a : b;
+
+                    ctx.moveTo(P1.x + topAngle.side * armLen, P1.y);
+                    ctx.lineTo(P1.x, P1.y);
+                    ctx.lineTo(P2.x, P2.y);
+                    ctx.lineTo(P2.x + botAngle.side * armLen, P2.y);
+
+                    if (rule.id === 'CORRESPONDING') {
+                        if (topAngle.vert === -1) {
+                            ctx.moveTo(P1.x, P1.y);
+                            ctx.lineTo(P1.x - dxT * extLen, P1.y - dyT * extLen);
+                        } else {
+                            ctx.moveTo(P2.x, P2.y);
+                            ctx.lineTo(P2.x + dxT * extLen, P2.y + dyT * extLen);
+                        }
+                    }
+                }
+
+                ctx.stroke();
+
+                // Bright white core
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.88)';
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 0;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            /* --- 6-LANE WARP MATH WAVE RENDERERS --- */
+
+            function drawWarpWeb(wGeo) {
+                const activeLane = state.activeLane;
+                const depthLevels = [0.0, 0.33, 0.66, 1.0];
+
+                // Active lane fill
+                const aMeta = wGeo.laneMeta[activeLane];
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(aMeta.innerA.x, aMeta.innerA.y);
+                ctx.lineTo(aMeta.outerA.x, aMeta.outerA.y);
+                ctx.lineTo(aMeta.outerB.x, aMeta.outerB.y);
+                ctx.lineTo(aMeta.innerB.x, aMeta.innerB.y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255, 230, 0, 0.11)';
+                ctx.fill();
+                ctx.restore();
+
+                // Hexagonal depth rings (magenta/cyan warp palette)
+                depthLevels.forEach((t, idx) => {
+                    const isOuter = idx === depthLevels.length - 1;
+                    const isInner = idx === 0;
+                    ctx.save();
+                    ctx.beginPath();
+                    for (let k = 0; k < 6; k++) {
+                        const m = wGeo.laneMeta[k];
+                        const ax = m.innerA.x + (m.outerA.x - m.innerA.x) * t;
+                        const ay = m.innerA.y + (m.outerA.y - m.innerA.y) * t;
+                        if (k === 0) ctx.moveTo(ax, ay);
+                        else ctx.lineTo(ax, ay);
+                    }
+                    ctx.closePath();
+                    ctx.strokeStyle = isOuter ? '#ff00cc' : isInner ? 'rgba(0, 243, 255, 0.62)' : 'rgba(255, 0, 204, 0.28)';
+                    ctx.lineWidth = isOuter ? 2.8 : isInner ? 1.8 : 1.15;
+                    if (isOuter || isInner) {
+                        ctx.shadowColor = isOuter ? '#ff00cc' : '#00f3ff';
+                        ctx.shadowBlur = isOuter ? 16 : 10;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
+                // 6 Radial spokes
+                for (let k = 0; k < 6; k++) {
+                    const isBorder = (k === activeLane || k === (activeLane + 1) % 6);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(wGeo.innerVerts[k].x, wGeo.innerVerts[k].y);
+                    ctx.lineTo(wGeo.outerVerts[k].x, wGeo.outerVerts[k].y);
+                    ctx.strokeStyle = isBorder ? '#ffe600' : 'rgba(0, 243, 255, 0.55)';
+                    ctx.lineWidth = isBorder ? 2.8 : 1.5;
+                    if (isBorder) {
+                        ctx.shadowColor = '#ffe600';
+                        ctx.shadowBlur = 14;
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Active outer rim highlight
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(aMeta.outerA.x, aMeta.outerA.y);
+                ctx.lineTo(aMeta.outerB.x, aMeta.outerB.y);
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 4;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 16;
+                ctx.stroke();
+                ctx.restore();
+
+                // Highlight correct lane rim in lime on miss
+                if (state.mode === 'FEEDBACK_WRONG' && state.warpProblem) {
+                    const tMeta = wGeo.laneMeta[state.warpProblem.targetLane];
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(tMeta.outerA.x, tMeta.outerA.y);
+                    ctx.lineTo(tMeta.outerB.x, tMeta.outerB.y);
+                    ctx.strokeStyle = '#39ff14';
+                    ctx.lineWidth = 5;
+                    ctx.shadowColor = '#39ff14';
+                    ctx.shadowBlur = 18;
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+
+            /** Draw large, upright, high-contrast degree badges in all 6 Warp lanes */
+            function drawWarpLaneLabels(wGeo) {
+                if (!state.warpProblem) return;
+                const choices = state.warpProblem.choices;
+                const targetLane = state.warpProblem.targetLane;
+                const showCorrect = state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG';
+
+                for (let k = 0; k < 6; k++) {
+                    const m = wGeo.laneMeta[k];
+                    const isAct = k === state.activeLane;
+                    const isCorrect = showCorrect && k === targetLane;
+                    const text = `${choices[k]}°`;
+
+                    const fontSize = Math.max(13, Math.min(20, Math.round(wGeo.R * 0.074)));
+                    ctx.save();
+                    ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
+                    const tw = ctx.measureText(text).width;
+                    const padX = 9;
+                    const padY = 5;
+
+                    const borderCol = isCorrect ? '#39ff14' : isAct ? '#ffe600' : '#00f3ff';
+                    const textCol = isCorrect ? '#39ff14' : isAct ? '#ffe600' : '#ffffff';
+
+                    ctx.fillStyle = isCorrect ? 'rgba(10, 32, 14, 0.94)' : 'rgba(5, 10, 26, 0.92)';
+                    ctx.strokeStyle = borderCol;
+                    ctx.lineWidth = isCorrect || isAct ? 2.2 : 1.4;
+                    ctx.shadowColor = borderCol;
+                    ctx.shadowBlur = isCorrect || isAct ? 14 : 7;
+
+                    ctx.beginPath();
+                    ctx.roundRect(
+                        m.labelPt.x - tw * 0.5 - padX,
+                        m.labelPt.y - fontSize * 0.5 - padY,
+                        tw + padX * 2,
+                        fontSize + padY * 2,
+                        7
+                    );
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = textCol;
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(text, m.labelPt.x, m.labelPt.y + 0.5);
+                    ctx.restore();
+                }
+            }
+
+            /** Draw Complementary (90°) right-angle corner inside the center of the Warp hexagon */
+            function drawComplementaryDiagram(wGeo, prob) {
+                const arm = wGeo.innerR * 0.58;
+                const box = arm * 0.24;
+                const givenRad = (prob.given * Math.PI) / 180;
+                const otherDeg = 90 - prob.given;
+                const showSolved = state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG';
+                const pulse = 0.78 + Math.sin(state.time * 8) * 0.22;
+
+                // Vertex offset in local rotated frame so the 90° corner sits balanced in the hexagon
+                const vxLocal = -arm * 0.36;
+                const vyLocal =  arm * 0.36;
+                const cosR = Math.cos(prob.rotRad);
+                const sinR = Math.sin(prob.rotRad);
+                const toWorld = (lx, ly) => ({
+                    x: (vxLocal + lx) * cosR - (vyLocal + ly) * sinR,
+                    y: (vxLocal + lx) * sinR + (vyLocal + ly) * cosR
+                });
+
+                ctx.save();
+                ctx.rotate(prob.rotRad);
+                ctx.translate(vxLocal, vyLocal);
+
+                // Wedge 1: Given angle (0 to -givenRad, above horizontal ray)
+                const arcR1 = arm * (prob.given < 30 ? 0.52 : 0.44);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, arcR1, -givenRad, 0, false);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.26)';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(0, 0, arcR1, -givenRad, 0, false);
+                ctx.strokeStyle = '#00f3ff';
+                ctx.lineWidth = 2.6;
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+
+                // Wedge 2: Unknown '?' angle (-PI/2 to -givenRad)
+                const arcR2 = arm * (otherDeg < 30 ? 0.52 : 0.42);
+                const qCol = showSolved ? '#39ff14' : '#ffe600';
+                const qFill = showSolved
+                    ? 'rgba(57, 255, 20, 0.32)'
+                    : `rgba(255, 230, 0, ${0.18 + pulse * 0.14})`;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, arcR2, -Math.PI * 0.5, -givenRad, false);
+                ctx.closePath();
+                ctx.fillStyle = qFill;
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(0, 0, arcR2, -Math.PI * 0.5, -givenRad, false);
+                ctx.strokeStyle = qCol;
+                ctx.lineWidth = 2.6;
+                ctx.shadowColor = qCol;
+                ctx.shadowBlur = showSolved ? 14 : 10 + pulse * 8;
+                ctx.stroke();
+
+                // Right-angle square symbol
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.moveTo(box, 0);
+                ctx.lineTo(box, -box);
+                ctx.lineTo(0, -box);
+                ctx.stroke();
+
+                // Outer perpendicular rays
+                ctx.strokeStyle = '#e8f9ff';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(0, -arm);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(arm, 0);
+                ctx.stroke();
+
+                // Splitting ray
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 2.6;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(Math.cos(-givenRad) * arm * 0.98, Math.sin(-givenRad) * arm * 0.98);
+                ctx.stroke();
+
+                ctx.restore();
+
+                // Upright labels (external pill + leader line whenever an angle is narrow < 30°)
+                const lblFont = Math.max(11, Math.round(wGeo.R * 0.048));
+                const wedges = [
+                    {
+                        deg: prob.given,
+                        mid: -givenRad * 0.5,
+                        arcR: arcR1,
+                        text: `${prob.given}°`,
+                        color: '#00f3ff',
+                        isUnknown: false
+                    },
+                    {
+                        deg: otherDeg,
+                        mid: (-Math.PI * 0.5 - givenRad) * 0.5,
+                        arcR: arcR2,
+                        text: showSolved ? `${prob.answer}°` : '?',
+                        color: qCol,
+                        isUnknown: true
+                    }
+                ];
+
+                const maxLabelR = wGeo.innerR * 0.78;
+                wedges.forEach((w) => {
+                    const isNarrow = w.deg < 30;
+                    const tip = toWorld(Math.cos(w.mid) * (w.arcR * 0.78), Math.sin(w.mid) * (w.arcR * 0.78));
+
+                    if (isNarrow) {
+                        // Place external callout pill cleanly beyond the splitting ray with leader line
+                        let lbl = toWorld(Math.cos(w.mid) * (arm * 1.18), Math.sin(w.mid) * (arm * 1.18));
+                        const dCenter = Math.hypot(lbl.x, lbl.y);
+                        if (dCenter > maxLabelR) {
+                            lbl.x = (lbl.x / dCenter) * maxLabelR;
+                            lbl.y = (lbl.y / dCenter) * maxLabelR;
+                        }
+
+                        ctx.save();
+                        ctx.font = `900 ${w.isUnknown ? Math.round(lblFont * 1.08) : lblFont}px "Orbitron", sans-serif`;
+                        const tw = ctx.measureText(w.text).width;
+                        const padX = 7;
+                        const padY = 4;
+
+                        // Leader line from pill center to arc midpoint
+                        ctx.beginPath();
+                        ctx.moveTo(lbl.x, lbl.y);
+                        ctx.lineTo(tip.x, tip.y);
+                        ctx.strokeStyle = w.color;
+                        ctx.lineWidth = 1.6;
+                        ctx.shadowColor = w.color;
+                        ctx.shadowBlur = 8;
+                        ctx.stroke();
+
+                        // Glowing dot at arc midpoint
+                        ctx.beginPath();
+                        ctx.arc(tip.x, tip.y, 2.8, 0, Math.PI * 2);
+                        ctx.fillStyle = w.color;
+                        ctx.fill();
+
+                        // Translucent pill badge
+                        ctx.fillStyle = 'rgba(4, 9, 22, 0.92)';
+                        ctx.strokeStyle = w.color;
+                        ctx.lineWidth = w.isUnknown ? 2 : 1.5;
+                        ctx.beginPath();
+                        ctx.roundRect(lbl.x - tw * 0.5 - padX, lbl.y - lblFont * 0.5 - padY, tw + padX * 2, lblFont + padY * 2, 7);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = w.color;
+                        ctx.shadowBlur = 8;
+                        ctx.fillText(w.text, lbl.x, lbl.y + 0.5);
+                        ctx.restore();
+                    } else {
+                        const pos = toWorld(Math.cos(w.mid) * (arm * 0.68), Math.sin(w.mid) * (arm * 0.68));
+                        ctx.save();
+                        ctx.font = `900 ${w.isUnknown ? Math.round(lblFont * 1.15) : lblFont}px "Orbitron", sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = w.color;
+                        ctx.shadowColor = w.color;
+                        ctx.shadowBlur = 10;
+                        ctx.fillText(w.text, pos.x, pos.y);
+                        ctx.restore();
+                    }
+                });
+            }
+
+            /**
+             * Draw Triangle Sum (180°) diagram with exact Euclidean angles,
+             * crisp interior arcs, and external callout pills with leader lines
+             * pointing directly to each vertex's angle arc.
+             */
+            function drawTriangleDiagram(wGeo, prob) {
+                const [degA, degB, degC] = prob.angles;
+                const radA = (degA * Math.PI) / 180;
+                const radB = (degB * Math.PI) / 180;
+                const radC = (degC * Math.PI) / 180;
+                const showSolved = state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG';
+                const pulse = 0.72 + Math.sin(state.time * 8) * 0.28;
+
+                // Law of Sines: place A at (0,0), B at (cLen, 0), C at (bLen*cos(A), -bLen*sin(A))
+                const cLen = Math.sin(radC);
+                const bLen = Math.sin(radB);
+                const rawVerts = [
+                    { x: 0, y: 0 },
+                    { x: cLen, y: 0 },
+                    { x: bLen * Math.cos(radA), y: -bLen * Math.sin(radA) }
+                ];
+
+                // Center on centroid and scale comfortably so external pills have ample room inside innerR
+                const cx = (rawVerts[0].x + rawVerts[1].x + rawVerts[2].x) / 3;
+                const cy = (rawVerts[0].y + rawVerts[1].y + rawVerts[2].y) / 3;
+                let maxDist = 0.001;
+                const centered = rawVerts.map((v) => {
+                    const dx = v.x - cx;
+                    const dy = v.y - cy;
+                    maxDist = Math.max(maxDist, Math.hypot(dx, dy));
+                    return { x: dx, y: dy };
+                });
+
+                const scale = (wGeo.innerR * 0.49) / maxDist;
+                const cosR = Math.cos(prob.rotRad);
+                const sinR = Math.sin(prob.rotRad);
+
+                // Rotate vertices directly into upright screen-aligned coordinates
+                const verts = centered.map((v) => {
+                    const sx = v.x * scale;
+                    const sy = v.y * scale;
+                    return {
+                        x: sx * cosR - sy * sinR,
+                        y: sx * sinR + sy * cosR
+                    };
+                });
+
+                ctx.save();
+
+                // Subtle triangle fill
+                ctx.beginPath();
+                ctx.moveTo(verts[0].x, verts[0].y);
+                ctx.lineTo(verts[1].x, verts[1].y);
+                ctx.lineTo(verts[2].x, verts[2].y);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.07)';
+                ctx.fill();
+
+                const lblFont = Math.max(10, Math.min(15, Math.round(wGeo.R * 0.048)));
+                const callouts = [];
+
+                // 1. Draw interior angle arcs & compute initial external callout positions
+                for (let i = 0; i < 3; i++) {
+                    const v = verts[i];
+                    const prev = verts[(i + 2) % 3];
+                    const next = verts[(i + 1) % 3];
+
+                    const dPrev = Math.hypot(prev.x - v.x, prev.y - v.y);
+                    const dNext = Math.hypot(next.x - v.x, next.y - v.y);
+                    const minEdge = Math.min(dPrev, dNext);
+
+                    const a1 = Math.atan2(prev.y - v.y, prev.x - v.x);
+                    const a2 = Math.atan2(next.y - v.y, next.x - v.x);
+
+                    // Compute shortest interior arc span
+                    const diff = normalizeAngle(a2 - a1);
+                    let start = a1;
+                    let end = a1 + diff;
+                    if (diff < 0) {
+                        start = a2;
+                        end = a2 - diff;
+                    }
+                    const mid = (start + end) * 0.5;        // Inward bisector
+                    const outAng = mid + Math.PI;           // Outward bisector (away from triangle interior)
+
+                    const deg = prob.angles[i];
+                    // Slightly larger arc radius for narrow angles so the arc stays crisp and legible
+                    const desiredArcR = wGeo.innerR * (deg < 38 ? 0.21 : 0.165);
+                    const arcR = Math.min(desiredArcR, minEdge * 0.44);
+
+                    const isUnknown = i === 2;
+                    const col = isUnknown ? '#ffe600' : '#00f3ff';
+                    const fill = isUnknown
+                        ? `rgba(255, 230, 0, ${showSolved ? 0.36 : 0.20 + pulse * 0.16})`
+                        : 'rgba(0, 243, 255, 0.24)';
+
+                    // Filled angle wedge
+                    ctx.beginPath();
+                    ctx.moveTo(v.x, v.y);
+                    ctx.arc(v.x, v.y, arcR, start, end, false);
+                    ctx.closePath();
+                    ctx.fillStyle = fill;
+                    ctx.fill();
+
+                    // Crisp colored angle arc
+                    ctx.beginPath();
+                    ctx.arc(v.x, v.y, arcR, start, end, false);
+                    ctx.strokeStyle = col;
+                    ctx.lineWidth = isUnknown ? 2.8 : 2.3;
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = isUnknown ? (10 + pulse * 10) : 10;
+                    ctx.stroke();
+
+                    // Arc midpoint where the leader line + glowing dot will attach
+                    const arcTip = {
+                        x: v.x + Math.cos(mid) * (arcR * 0.72),
+                        y: v.y + Math.sin(mid) * (arcR * 0.72)
+                    };
+
+                    const txt = isUnknown ? (showSolved ? `${degC}°` : '?') : `${deg}°`;
+                    const fontPx = isUnknown ? Math.round(lblFont * 1.1) : lblFont;
+                    ctx.font = `900 ${fontPx}px "Orbitron", sans-serif`;
+                    const tw = ctx.measureText(txt).width;
+                    const padX = isUnknown && !showSolved ? 9 : 7;
+                    const padY = 4.5;
+                    const halfW = tw * 0.5 + padX;
+                    const halfH = fontPx * 0.5 + padY;
+
+                    // Place pill cleanly outside the vertex along the outward bisector
+                    const outwardOffset = Math.max(wGeo.innerR * 0.24, Math.hypot(halfW, halfH) + 8);
+                    const lx = v.x + Math.cos(outAng) * outwardOffset;
+                    const ly = v.y + Math.sin(outAng) * outwardOffset;
+
+                    callouts.push({
+                        x: lx,
+                        y: ly,
+                        vx: v.x,
+                        vy: v.y,
+                        outAng,
+                        arcTip,
+                        txt,
+                        fontPx,
+                        halfW,
+                        halfH,
+                        col,
+                        isUnknown
+                    });
+                }
+
+                // 2. Clamp pills inside the inner hexagonal web ring & separate if any two get close
+                const maxRingR = wGeo.innerR * 0.84;
+                const clampPill = (c) => {
+                    const effR = Math.hypot(c.x, c.y);
+                    const limit = Math.max(wGeo.innerR * 0.45, maxRingR - Math.max(c.halfW * 0.72, c.halfH * 0.85));
+                    if (effR > limit) {
+                        c.x = (c.x / effR) * limit;
+                        c.y = (c.y / effR) * limit;
+                    }
+                };
+
+                callouts.forEach(clampPill);
+                for (let iter = 0; iter < 6; iter++) {
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = i + 1; j < 3; j++) {
+                            const a = callouts[i];
+                            const b = callouts[j];
+                            const dx = b.x - a.x;
+                            const dy = b.y - a.y;
+                            const minX = a.halfW + b.halfW + 6;
+                            const minY = a.halfH + b.halfH + 6;
+                            if (Math.abs(dx) < minX && Math.abs(dy) < minY) {
+                                const dist = Math.hypot(dx, dy) || 1;
+                                const push = 3.5;
+                                a.x -= (dx / dist) * push;
+                                a.y -= (dy / dist) * push;
+                                b.x += (dx / dist) * push;
+                                b.y += (dy / dist) * push;
+                                clampPill(a);
+                                clampPill(b);
+                            }
+                        }
+                    }
+                }
+
+                // 3. Crisp Neon Triangle Outline (drawn over arcs, under leader dots/pills)
+                ctx.beginPath();
+                ctx.moveTo(verts[0].x, verts[0].y);
+                ctx.lineTo(verts[1].x, verts[1].y);
+                ctx.lineTo(verts[2].x, verts[2].y);
+                ctx.closePath();
+                ctx.strokeStyle = '#e8f9ff';
+                ctx.lineWidth = 2.8;
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#00f3ff';
+                ctx.shadowBlur = 12;
+                ctx.stroke();
+
+                // 4. Draw leader lines, glowing arc-tip dots, and external upright pills
+                callouts.forEach((c) => {
+                    ctx.save();
+
+                    // Leader line from pill center to the midpoint of the interior angle arc
+                    ctx.beginPath();
+                    ctx.moveTo(c.x, c.y);
+                    ctx.lineTo(c.arcTip.x, c.arcTip.y);
+                    ctx.strokeStyle = c.col;
+                    ctx.lineWidth = c.isUnknown ? 1.9 : 1.5;
+                    ctx.globalAlpha = 0.88;
+                    ctx.shadowColor = c.col;
+                    ctx.shadowBlur = 8;
+                    ctx.stroke();
+
+                    // Glowing dot at the interior arc midpoint
+                    ctx.globalAlpha = 1;
+                    ctx.beginPath();
+                    ctx.arc(c.arcTip.x, c.arcTip.y, c.isUnknown ? 3.1 : 2.6, 0, Math.PI * 2);
+                    ctx.fillStyle = c.col;
+                    ctx.shadowColor = c.col;
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+
+                    // Dark translucent pill with crisp colored border (masks leader start cleanly)
+                    ctx.fillStyle = 'rgba(4, 9, 22, 0.93)';
+                    ctx.strokeStyle = c.col;
+                    ctx.lineWidth = c.isUnknown ? (1.8 + pulse * 0.8) : 1.6;
+                    ctx.shadowColor = c.col;
+                    ctx.shadowBlur = c.isUnknown ? (10 + pulse * 10) : 9;
+                    ctx.beginPath();
+                    ctx.roundRect(c.x - c.halfW, c.y - c.halfH, c.halfW * 2, c.halfH * 2, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Upright bold text inside pill
+                    ctx.font = `900 ${c.fontPx}px "Orbitron", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = c.isUnknown && showSolved ? '#39ff14' : c.col;
+                    ctx.shadowColor = c.isUnknown && showSolved ? '#39ff14' : c.col;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(c.txt, c.x, c.y + 0.5);
+
+                    ctx.restore();
+                });
+
+                ctx.restore();
+            }
+
+            /* --- SHARED ENTITY RENDERERS --- */
+
+            function drawFlipperAt(pt, progress, R, laneIdx) {
+                const scale = (0.36 + progress * 0.92) * (R * 0.056);
+                const pulse = 1 + Math.sin(state.time * 12 + laneIdx) * 0.08;
+                const s = scale * pulse;
+
+                ctx.save();
+                ctx.translate(pt.x, pt.y);
+                ctx.rotate(state.enemySpin * (laneIdx % 2 === 0 ? 1 : -1));
+
+                ctx.beginPath();
+                ctx.moveTo(0, -s);
+                ctx.lineTo(s * 0.86, 0);
+                ctx.lineTo(0, s);
+                ctx.lineTo(-s * 0.86, 0);
+                ctx.closePath();
+
+                ctx.strokeStyle = '#ff00cc';
+                ctx.lineWidth = 2.2;
+                ctx.shadowColor = '#ff00cc';
+                ctx.shadowBlur = 12;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(-s * 0.45, -s * 0.45);
+                ctx.lineTo(s * 0.45, s * 0.45);
+                ctx.moveTo(s * 0.45, -s * 0.45);
+                ctx.lineTo(-s * 0.45, s * 0.45);
+                ctx.strokeStyle = '#ffaa00';
+                ctx.lineWidth = 1.6;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            function drawPlayerClawOnLane(m, R) {
+                const ex = m.outerB.x - m.outerA.x;
+                const ey = m.outerB.y - m.outerA.y;
+                const edgeLen = Math.hypot(ex, ey) || 1;
+                const tx = ex / edgeLen;
+                const ty = ey / edgeLen;
+
+                const mx = m.outerMid.x;
+                const my = m.outerMid.y;
+                const cLen = Math.hypot(mx, my) || 1;
+                const ix = -mx / cLen;
+                const iy = -my / cLen;
+
+                const w = Math.min(edgeLen * 0.28, R * 0.17);
+                const hIn = R * 0.068;
+                const hOut = R * 0.03;
+
+                const pLeftOuter  = { x: mx - tx * w - ix * hOut, y: my - ty * w - iy * hOut };
+                const pRightOuter = { x: mx + tx * w - ix * hOut, y: my + ty * w - iy * hOut };
+                const pTip        = { x: mx + ix * hIn,           y: my + iy * hIn };
+                const pLeftInner  = { x: mx - tx * (w * 0.46) + ix * (hIn * 0.25), y: my - ty * (w * 0.46) + iy * (hIn * 0.25) };
+                const pRightInner = { x: mx + tx * (w * 0.46) + ix * (hIn * 0.25), y: my + ty * (w * 0.46) + iy * (hIn * 0.25) };
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(pLeftOuter.x, pLeftOuter.y);
+                ctx.lineTo(pTip.x, pTip.y);
+                ctx.lineTo(pRightOuter.x, pRightOuter.y);
+                ctx.lineTo(pRightInner.x, pRightInner.y);
+                ctx.lineTo(mx + ix * (hIn * 0.45), my + iy * (hIn * 0.45));
+                ctx.lineTo(pLeftInner.x, pLeftInner.y);
+                ctx.closePath();
+
+                ctx.fillStyle = 'rgba(255, 230, 0, 0.28)';
+                ctx.fill();
+                ctx.strokeStyle = '#ffe600';
+                ctx.lineWidth = 2.8;
+                ctx.shadowColor = '#ffe600';
+                ctx.shadowBlur = 16;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawLaserAlong(pointFn) {
+                if (state.laserTimer <= 0 || state.shotLane === null) return;
+                const alpha = Math.min(1, state.laserTimer / 0.18);
+                const color = state.feedbackType === 'CORRECT' ? '#39ff14' : '#ff2a55';
+
+                ctx.save();
+                ctx.beginPath();
+                const steps = 12;
+                for (let i = 0; i <= steps; i++) {
+                    const p = pointFn(state.shotLane, 1 - i / steps);
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 6 * alpha;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 20;
+                ctx.globalAlpha = alpha;
+                ctx.stroke();
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2 * alpha;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawParticles(dt) {
+                for (let i = state.particles.length - 1; i >= 0; i--) {
+                    const p = state.particles[i];
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    p.vx *= 0.95;
+                    p.vy *= 0.95;
+                    p.life -= dt;
+                    if (p.life <= 0) {
+                        state.particles.splice(i, 1);
+                        continue;
+                    }
+                    const a = Math.max(0, p.life / p.maxLife);
+                    ctx.save();
+                    ctx.globalAlpha = a;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = p.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillRect(p.x - p.size * 0.5, p.y - p.size * 0.5, p.size, p.size);
+                    ctx.restore();
+                }
+            }
+
+            function drawScreenSpaceLabels(dt) {
+                ctx.save();
+                ctx.translate(state.cx, state.cy);
+
+                for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
+                    const ft = state.floatingTexts[i];
+                    ft.life -= dt;
+                    if (ft.life <= 0) {
+                        state.floatingTexts.splice(i, 1);
+                        continue;
+                    }
+                    const progress = 1 - ft.life / ft.maxLife;
+                    const alpha = Math.min(1, (ft.life / ft.maxLife) * 1.5);
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    const fontSize = Math.max(12, Math.min(18, Math.round(state.radius * 0.08)));
+                    ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+
+                    const tw = ctx.measureText(ft.text).width;
+                    const fy = ft.y - progress * 20;
+                    ctx.fillStyle = 'rgba(3, 6, 16, 0.86)';
+                    ctx.beginPath();
+                    ctx.roundRect(-tw * 0.5 - 10, fy - fontSize * 0.72, tw + 20, fontSize * 1.44, 8);
+                    ctx.fill();
+
+                    ctx.fillStyle = ft.color;
+                    ctx.shadowColor = ft.color;
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(ft.text, ft.x, fy);
+                    ctx.restore();
+                }
+
+                if (state.waveAnnounceTimer > 0 && state.waveAnnounceText) {
+                    const a = Math.min(1, state.waveAnnounceTimer * 1.4);
+                    ctx.save();
+                    ctx.globalAlpha = a;
+                    const fontSize = Math.max(11, Math.min(16, Math.round(state.radius * 0.068)));
+                    ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const wy = -state.radius * 0.96;
+                    ctx.fillStyle = '#ffe600';
+                    ctx.shadowColor = '#ffe600';
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(state.waveAnnounceText, 0, wy);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+
+            /* =========================================================
+               11. MAIN ANIMATION LOOP
+               ========================================================= */
+            let lastTime = 0;
+
+            function gameLoop(timestamp) {
+                const rawDt = (timestamp - lastTime) / 1000;
+                lastTime = timestamp;
+                const dt = Math.min(0.05, Math.max(0.001, isNaN(rawDt) ? 0.016 : rawDt));
+                state.time += dt;
+
+                // Exact HiDPI transform every frame
+                ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+
+                // Smooth diagram rotation & slant interpolation
+                state.diagramAngle += (state.targetDiagramAngle - state.diagramAngle) * Math.min(1, dt * 6.5);
+                state.alpha += (state.targetAlpha - state.alpha) * Math.min(1, dt * 6.5);
+
+                // Held-key claw repeat
+                if (state.heldKeyDir !== 0 && (state.mode === 'PLAYING' || state.mode === 'FEEDBACK_CORRECT')) {
+                    state.keyRepeatTimer -= dt;
+                    if (state.keyRepeatTimer <= 0) {
+                        moveClaw(state.heldKeyDir);
+                        state.keyRepeatTimer = 0.125;
+                    }
+                }
+
+                // Decay transient FX
+                if (state.laserTimer > 0) state.laserTimer = Math.max(0, state.laserTimer - dt);
+                if (state.screenShake > 0) state.screenShake = Math.max(0, state.screenShake - dt * 28);
+                if (state.flashAlpha > 0) state.flashAlpha = Math.max(0, state.flashAlpha - dt * 1.4);
+                if (state.waveAnnounceTimer > 0) state.waveAnnounceTimer = Math.max(0, state.waveAnnounceTimer - dt);
+
+                // Mode-specific updates
+                if (state.mode === 'START') {
+                    state.diagramAngle += dt * 0.16;
+                    state.targetDiagramAngle = state.diagramAngle;
+                } else if (state.mode === 'WARP_TRANSITION') {
+                    state.warpTransitionTimer -= dt;
+                    if (state.warpTransitionTimer <= 0) {
+                        if (state.warpTargetStage === 'WARP') {
+                            spawnWarpRound();
+                        } else {
+                            spawnStandardRound();
+                        }
+                    }
+                } else if (state.mode === 'PLAYING') {
+                    state.enemySpin += dt * 2.9;
+                    const accelFactor = 0.72 + state.enemyProgress * 0.65;
+                    state.enemyProgress += state.enemySpeed * accelFactor * dt;
+
+                    if (state.enemyProgress >= 1.0) {
+                        state.stats[state.currentRule.id].total += 1;
+                        const breachMsg = state.stageType === 'WARP'
+                            ? state.warpProblem.equation
+                            : `RIM BREACHED — ${state.currentRule.hint}`;
+                        handleMistake(breachMsg);
+                    }
+                } else if (state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG') {
+                    state.feedbackTimer -= dt;
+                    if (state.feedbackTimer <= 0) {
+                        advanceAfterFeedback();
+                    }
+                }
+
+                // Clear logical viewport
+                ctx.fillStyle = '#03040a';
+                ctx.fillRect(0, 0, state.viewW, state.viewH);
+
+                // Starfield (hyper-streaks during Warp Transition)
+                drawStarfield(dt, state.mode === 'WARP_TRANSITION' ? 5.5 : 1);
+
+                // Render active scene
+                if (state.mode === 'WARP_TRANSITION') {
+                    drawWarpTransition();
+                } else if (state.stageType === 'WARP' && state.mode !== 'START') {
+                    // --- 6-LANE WARP MATH WAVE ---
+                    const wGeo = buildWarpGeometry(state.radius);
+                    ctx.save();
+                    const shakeX = state.screenShake > 0 ? (Math.random() - 0.5) * state.screenShake : 0;
+                    const shakeY = state.screenShake > 0 ? (Math.random() - 0.5) * state.screenShake : 0;
+                    ctx.translate(state.cx + shakeX, state.cy + shakeY);
+
+                    drawWarpWeb(wGeo);
+
+                    if (state.warpProblem) {
+                        if (state.warpProblem.type === 'COMPLEMENTARY') {
+                            drawComplementaryDiagram(wGeo, state.warpProblem);
+                        } else {
+                            drawTriangleDiagram(wGeo, state.warpProblem);
+                        }
+                    }
+
+                    // Flippers advancing down all 6 lanes
+                    if (state.mode === 'PLAYING' || state.mode === 'FEEDBACK_WRONG') {
+                        const clamped = Math.min(0.96, state.enemyProgress);
+                        for (let lane = 0; lane < 6; lane++) {
+                            const pt = getWarpLanePoint(wGeo, lane, clamped);
+                            drawFlipperAt(pt, clamped, wGeo.R, lane);
+                        }
+                    }
+
+                    // Degree labels on top so they remain crystal-clear
+                    drawWarpLaneLabels(wGeo);
+
+                    drawLaserAlong((lane, t) => getWarpLanePoint(wGeo, lane, t));
+                    drawPlayerClawOnLane(wGeo.laneMeta[state.activeLane % 6], wGeo.R);
+                    drawParticles(dt);
+                    ctx.restore();
+                } else {
+                    // --- 8-LANE STANDARD PARALLEL-LINE WEB ---
+                    const theme = WEB_THEMES[state.webThemeIdx];
+                    const geo = buildStandardGeometry(state.radius, state.alpha, theme);
+
+                    ctx.save();
+                    const shakeX = state.screenShake > 0 ? (Math.random() - 0.5) * state.screenShake : 0;
+                    const shakeY = state.screenShake > 0 ? (Math.random() - 0.5) * state.screenShake : 0;
+                    ctx.translate(state.cx + shakeX, state.cy + shakeY);
+                    ctx.rotate(state.diagramAngle);
+
+                    drawStandardWeb(geo);
+                    drawParallelDiagram(geo);
+
+                    if (state.mode !== 'START') {
+                        drawAngleHighlight(
+                            geo,
+                            state.anchorLane,
+                            '#00f3ff',
+                            'rgba(0, 243, 255, 0.34)',
+                            true,
+                            'ANCHOR'
+                        );
+
+                        // Pedagogical feedback overlay on hit or miss
+                        if (state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG') {
+                            const chosenTarget = (state.shotLane !== null && state.targetLanes.includes(state.shotLane))
+                                ? state.shotLane
+                                : state.targetLanes[0];
+
+                            drawRuleShapeOverlay(geo, state.currentRule, state.anchorLane, chosenTarget);
+
+                            // Highlight valid target angle(s)
+                            const lanesToHighlight = state.mode === 'FEEDBACK_WRONG' ? state.targetLanes : [chosenTarget];
+                            lanesToHighlight.forEach((tLane) => {
+                                drawAngleHighlight(
+                                    geo,
+                                    tLane,
+                                    '#39ff14',
+                                    'rgba(57, 255, 20, 0.38)',
+                                    true
+                                );
+                                if (state.mode === 'FEEDBACK_WRONG') {
+                                    const tMeta = geo.laneMeta[tLane];
+                                    ctx.save();
+                                    ctx.beginPath();
+                                    traceStandardLaneEdge(ctx, tMeta, theme, 1.0, true);
+                                    ctx.strokeStyle = '#39ff14';
+                                    ctx.lineWidth = 5;
+                                    ctx.shadowColor = '#39ff14';
+                                    ctx.shadowBlur = 18;
+                                    ctx.stroke();
+                                    ctx.restore();
+                                }
+                            });
+                        }
+
+                        // Identical Flippers advancing down the 7 non-anchor lanes
+                        if (state.mode === 'PLAYING' || state.mode === 'FEEDBACK_WRONG') {
+                            const clamped = Math.min(0.98, state.enemyProgress);
+                            for (let lane = 0; lane < 8; lane++) {
+                                if (lane === state.anchorLane) continue;
+                                const pt = getStandardLanePoint(geo, lane, clamped);
+                                drawFlipperAt(pt, clamped, geo.R, lane);
+                            }
+                        }
+
+                        drawLaserAlong((lane, t) => getStandardLanePoint(geo, lane, t));
+                        drawPlayerClawOnLane(geo.laneMeta[state.activeLane % 8], geo.R);
+                    }
+
+                    drawParticles(dt);
+                    ctx.restore();
+                }
+
+                // Upright screen-space floating feedback & wave notices
+                drawScreenSpaceLabels(dt);
+
+                // Brief red damage flash on miss
+                if (state.flashAlpha > 0) {
+                    ctx.save();
+                    ctx.fillStyle = state.flashColor;
+                    ctx.globalAlpha = state.flashAlpha;
+                    ctx.fillRect(0, 0, state.viewW, state.viewH);
+                    ctx.restore();
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            /* =========================================================
+               12. BOOTSTRAP ON WINDOW LOAD
+               ========================================================= */
+            window.onload = function () {
+                resizeCanvas();
+                updateRulePickerUI();
+                updatePaceButton();
+                updateHintButtons();
+                updateMusicButton();
+                updateMuteButtons();
+                renderLives();
+                requestAnimationFrame(gameLoop);
+            };
+        })();
+    </script>
+</body>
+</html>
