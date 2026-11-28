@@ -1315,8 +1315,8 @@
 
             /** 6-Lane Hexagonal Warp Math Web Geometry */
             function buildWarpGeometry(R) {
-                const outerR = R * 0.94;
-                const innerR = R * 0.43;
+                const outerR = R * 0.95;
+                const innerR = R * 0.445;
                 const outerVerts = [];
                 const innerVerts = [];
 
@@ -1337,8 +1337,8 @@
                     const innerMid = { x: (innerA.x + innerB.x) * 0.5, y: (innerA.y + innerB.y) * 0.5 };
                     const laneCenterAng = ((-90 + k * 60) * Math.PI) / 180;
                     const labelPt = {
-                        x: innerMid.x + (outerMid.x - innerMid.x) * 0.78,
-                        y: innerMid.y + (outerMid.y - innerMid.y) * 0.78
+                        x: innerMid.x + (outerMid.x - innerMid.x) * 0.80,
+                        y: innerMid.y + (outerMid.y - innerMid.y) * 0.80
                     };
                     laneMeta.push({
                         lane: k,
@@ -2728,19 +2728,36 @@
                 ctx.stroke();
 
                 if (showDegree) {
-                    const labelR = arcR * 1.38;
+                    const labelR = arcR * 1.48;
                     const lx = m.center.x + Math.cos(m.midAngle) * labelR;
                     const ly = m.center.y + Math.sin(m.midAngle) * labelR;
+                    const degText = `${m.deg}°`;
+                    const degFont = Math.max(12, Math.min(17, Math.round(geo.R * 0.052)));
+
                     ctx.save();
                     ctx.translate(lx, ly);
                     ctx.rotate(-state.diagramAngle);
-                    ctx.font = `bold ${Math.max(10, Math.round(geo.R * 0.044))}px "Share Tech Mono", monospace`;
+                    ctx.font = `900 ${degFont}px "Orbitron", sans-serif`;
+                    const tw = ctx.measureText(degText).width;
+                    const padX = 6;
+                    const padY = 3.5;
+
+                    // Dark translucent pill halo so parallel/transversal lines never obscure the readout
+                    ctx.fillStyle = 'rgba(3, 8, 22, 0.92)';
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = 1.4;
+                    ctx.shadowColor = strokeColor;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.roundRect(-tw * 0.5 - padX, -degFont * 0.5 - padY, tw + padX * 2, degFont + padY * 2, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = strokeColor;
-                    ctx.shadowBlur = 8;
-                    ctx.fillText(`${m.deg}°`, 0, 0);
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(degText, 0, 0.5);
                     ctx.restore();
                 }
 
@@ -2884,20 +2901,20 @@
                     ctx.lineWidth = isOuter ? 2.8 : isInner ? 1.8 : 1.15;
                     if (isOuter || isInner) {
                         ctx.shadowColor = isOuter ? '#ff00cc' : '#00f3ff';
-                        ctx.shadowBlur = isOuter ? 16 : 10;
+                        ctx.shadowBlur = isOuter ? 14 : 10;
                     }
                     ctx.stroke();
                     ctx.restore();
                 });
 
-                // 6 Radial spokes
+                // Radial spokes for the 6-lane Warp web
                 for (let k = 0; k < 6; k++) {
                     const isBorder = (k === activeLane || k === (activeLane + 1) % 6);
                     ctx.save();
                     ctx.beginPath();
                     ctx.moveTo(wGeo.innerVerts[k].x, wGeo.innerVerts[k].y);
                     ctx.lineTo(wGeo.outerVerts[k].x, wGeo.outerVerts[k].y);
-                    ctx.strokeStyle = isBorder ? '#ffe600' : 'rgba(0, 243, 255, 0.55)';
+                    ctx.strokeStyle = isBorder ? '#ffe600' : 'rgba(255, 0, 204, 0.6)';
                     ctx.lineWidth = isBorder ? 2.8 : 1.5;
                     if (isBorder) {
                         ctx.shadowColor = '#ffe600';
@@ -2918,24 +2935,9 @@
                 ctx.shadowBlur = 16;
                 ctx.stroke();
                 ctx.restore();
-
-                // Highlight correct lane rim in lime on miss
-                if (state.mode === 'FEEDBACK_WRONG' && state.warpProblem) {
-                    const tMeta = wGeo.laneMeta[state.warpProblem.targetLane];
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(tMeta.outerA.x, tMeta.outerA.y);
-                    ctx.lineTo(tMeta.outerB.x, tMeta.outerB.y);
-                    ctx.strokeStyle = '#39ff14';
-                    ctx.lineWidth = 5;
-                    ctx.shadowColor = '#39ff14';
-                    ctx.shadowBlur = 18;
-                    ctx.stroke();
-                    ctx.restore();
-                }
             }
 
-            /** Draw large, upright, high-contrast degree badges in all 6 Warp lanes */
+            /** Draw upright, balanced-size degree badges in all 6 Warp lanes */
             function drawWarpLaneLabels(wGeo) {
                 if (!state.warpProblem) return;
                 const choices = state.warpProblem.choices;
@@ -2948,19 +2950,20 @@
                     const isCorrect = showCorrect && k === targetLane;
                     const text = `${choices[k]}°`;
 
-                    const fontSize = Math.max(13, Math.min(20, Math.round(wGeo.R * 0.074)));
+                    // Balanced typography matching the central diagram callout badges
+                    const fontSize = Math.max(14, Math.min(20, Math.round(wGeo.R * 0.068)));
                     ctx.save();
                     ctx.font = `900 ${fontSize}px "Orbitron", sans-serif`;
                     const tw = ctx.measureText(text).width;
-                    const padX = 9;
-                    const padY = 5;
+                    const padX = 8.5;
+                    const padY = 4.5;
 
                     const borderCol = isCorrect ? '#39ff14' : isAct ? '#ffe600' : '#00f3ff';
                     const textCol = isCorrect ? '#39ff14' : isAct ? '#ffe600' : '#ffffff';
 
                     ctx.fillStyle = isCorrect ? 'rgba(10, 32, 14, 0.94)' : 'rgba(5, 10, 26, 0.92)';
                     ctx.strokeStyle = borderCol;
-                    ctx.lineWidth = isCorrect || isAct ? 2.2 : 1.4;
+                    ctx.lineWidth = isCorrect || isAct ? 2.2 : 1.5;
                     ctx.shadowColor = borderCol;
                     ctx.shadowBlur = isCorrect || isAct ? 14 : 7;
 
@@ -2984,16 +2987,58 @@
                 }
             }
 
-            /** Draw Complementary (90°) right-angle corner inside the center of the Warp hexagon */
+            /** Draw a crisp retro neon dotted leader line ending in a glowing dot + mini arrowhead inside the angle arc */
+            function drawDottedAngleLeader(fromX, fromY, toX, toY, color, isUnknown) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = isUnknown ? 2.3 : 2.0;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([3.5, 5.5]);
+                ctx.lineDashOffset = isUnknown ? -state.time * 20 : 0;
+                ctx.globalAlpha = 0.92;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Glowing endpoint dot inside the vertex's angle arc
+                ctx.globalAlpha = 1;
+                ctx.beginPath();
+                ctx.arc(toX, toY, isUnknown ? 3.5 : 3.0, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 12;
+                ctx.fill();
+
+                // Crisp mini arrowhead pointing directly into the angle slice
+                const ang = Math.atan2(toY - fromY, toX - fromX);
+                const headLen = isUnknown ? 7.5 : 6.5;
+                ctx.translate(toX, toY);
+                ctx.rotate(ang);
+                ctx.beginPath();
+                ctx.moveTo(1.5, 0);
+                ctx.lineTo(-headLen, -headLen * 0.52);
+                ctx.lineTo(-headLen * 0.65, 0);
+                ctx.lineTo(-headLen, headLen * 0.52);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            /** Draw Complementary (90°) right-angle corner with large external callout badges & dotted leader lines */
             function drawComplementaryDiagram(wGeo, prob) {
-                const arm = wGeo.innerR * 0.58;
-                const box = arm * 0.24;
+                const arm = wGeo.innerR * 0.64;
+                const box = arm * 0.23;
                 const givenRad = (prob.given * Math.PI) / 180;
                 const otherDeg = 90 - prob.given;
                 const showSolved = state.mode === 'FEEDBACK_CORRECT' || state.mode === 'FEEDBACK_WRONG';
-                const pulse = 0.78 + Math.sin(state.time * 8) * 0.22;
+                const pulse = 0.72 + Math.sin(state.time * 8) * 0.28;
 
-                // Vertex offset in local rotated frame so the 90° corner sits balanced in the hexagon
+                // Vertex offset in local rotated frame so the 90° corner sits balanced in the inner arena
                 const vxLocal = -arm * 0.36;
                 const vyLocal =  arm * 0.36;
                 const cosR = Math.cos(prob.rotRad);
@@ -3008,7 +3053,7 @@
                 ctx.translate(vxLocal, vyLocal);
 
                 // Wedge 1: Given angle (0 to -givenRad, above horizontal ray)
-                const arcR1 = arm * (prob.given < 30 ? 0.52 : 0.44);
+                const arcR1 = arm * (prob.given < 32 ? 0.56 : 0.48);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.arc(0, 0, arcR1, -givenRad, 0, false);
@@ -3024,11 +3069,11 @@
                 ctx.stroke();
 
                 // Wedge 2: Unknown '?' angle (-PI/2 to -givenRad)
-                const arcR2 = arm * (otherDeg < 30 ? 0.52 : 0.42);
+                const arcR2 = arm * (otherDeg < 32 ? 0.56 : 0.46);
                 const qCol = showSolved ? '#39ff14' : '#ffe600';
                 const qFill = showSolved
-                    ? 'rgba(57, 255, 20, 0.32)'
-                    : `rgba(255, 230, 0, ${0.18 + pulse * 0.14})`;
+                    ? 'rgba(57, 255, 20, 0.34)'
+                    : `rgba(255, 230, 0, ${0.18 + pulse * 0.16})`;
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.arc(0, 0, arcR2, -Math.PI * 0.5, -givenRad, false);
@@ -3038,14 +3083,14 @@
                 ctx.beginPath();
                 ctx.arc(0, 0, arcR2, -Math.PI * 0.5, -givenRad, false);
                 ctx.strokeStyle = qCol;
-                ctx.lineWidth = 2.6;
+                ctx.lineWidth = 2.8;
                 ctx.shadowColor = qCol;
                 ctx.shadowBlur = showSolved ? 14 : 10 + pulse * 8;
                 ctx.stroke();
 
-                // Right-angle square symbol
+                // Classic 90° right-angle square symbol
                 ctx.strokeStyle = '#ffe600';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 2.2;
                 ctx.shadowColor = '#ffe600';
                 ctx.shadowBlur = 8;
                 ctx.beginPath();
@@ -3056,7 +3101,7 @@
 
                 // Outer perpendicular rays
                 ctx.strokeStyle = '#e8f9ff';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 3.2;
                 ctx.lineCap = 'round';
                 ctx.shadowColor = '#00f3ff';
                 ctx.shadowBlur = 12;
@@ -3068,7 +3113,7 @@
 
                 // Splitting ray
                 ctx.strokeStyle = '#ffe600';
-                ctx.lineWidth = 2.6;
+                ctx.lineWidth = 2.8;
                 ctx.shadowColor = '#ffe600';
                 ctx.shadowBlur = 12;
                 ctx.beginPath();
@@ -3078,11 +3123,10 @@
 
                 ctx.restore();
 
-                // Upright labels (external pill + leader line whenever an angle is narrow < 30°)
-                const lblFont = Math.max(11, Math.round(wGeo.R * 0.048));
-                const wedges = [
+                // Always-external large matching pill badges with dotted leader lines for BOTH angles
+                const baseFont = Math.max(14, Math.min(21, Math.round(wGeo.R * 0.066)));
+                const rawSpecs = [
                     {
-                        deg: prob.given,
                         mid: -givenRad * 0.5,
                         arcR: arcR1,
                         text: `${prob.given}°`,
@@ -3090,7 +3134,6 @@
                         isUnknown: false
                     },
                     {
-                        deg: otherDeg,
                         mid: (-Math.PI * 0.5 - givenRad) * 0.5,
                         arcR: arcR2,
                         text: showSolved ? `${prob.answer}°` : '?',
@@ -3099,76 +3142,92 @@
                     }
                 ];
 
-                const maxLabelR = wGeo.innerR * 0.78;
-                wedges.forEach((w) => {
-                    const isNarrow = w.deg < 30;
-                    const tip = toWorld(Math.cos(w.mid) * (w.arcR * 0.78), Math.sin(w.mid) * (w.arcR * 0.78));
+                const callouts = rawSpecs.map((spec) => {
+                    const fontPx = spec.isUnknown && !showSolved ? Math.round(baseFont * 1.12) : baseFont;
+                    ctx.font = `900 ${fontPx}px "Orbitron", sans-serif`;
+                    const tw = ctx.measureText(spec.text).width;
+                    const padX = spec.isUnknown && !showSolved ? 11 : 8.5;
+                    const padY = 5;
+                    const halfW = tw * 0.5 + padX;
+                    const halfH = fontPx * 0.5 + padY;
 
-                    if (isNarrow) {
-                        // Place external callout pill cleanly beyond the splitting ray with leader line
-                        let lbl = toWorld(Math.cos(w.mid) * (arm * 1.18), Math.sin(w.mid) * (arm * 1.18));
-                        const dCenter = Math.hypot(lbl.x, lbl.y);
-                        if (dCenter > maxLabelR) {
-                            lbl.x = (lbl.x / dCenter) * maxLabelR;
-                            lbl.y = (lbl.y / dCenter) * maxLabelR;
-                        }
+                    // Target point right inside the shaded angle slice
+                    const tip = toWorld(Math.cos(spec.mid) * (spec.arcR * 0.66), Math.sin(spec.mid) * (spec.arcR * 0.66));
+                    // Place pill cleanly outside the splitting rays along the angle bisector
+                    const pos = toWorld(Math.cos(spec.mid) * (arm * 1.24), Math.sin(spec.mid) * (arm * 1.24));
 
-                        ctx.save();
-                        ctx.font = `900 ${w.isUnknown ? Math.round(lblFont * 1.08) : lblFont}px "Orbitron", sans-serif`;
-                        const tw = ctx.measureText(w.text).width;
-                        const padX = 7;
-                        const padY = 4;
+                    return {
+                        x: pos.x,
+                        y: pos.y,
+                        tip,
+                        text: spec.text,
+                        color: spec.color,
+                        isUnknown: spec.isUnknown,
+                        fontPx,
+                        halfW,
+                        halfH
+                    };
+                });
 
-                        // Leader line from pill center to arc midpoint
-                        ctx.beginPath();
-                        ctx.moveTo(lbl.x, lbl.y);
-                        ctx.lineTo(tip.x, tip.y);
-                        ctx.strokeStyle = w.color;
-                        ctx.lineWidth = 1.6;
-                        ctx.shadowColor = w.color;
-                        ctx.shadowBlur = 8;
-                        ctx.stroke();
-
-                        // Glowing dot at arc midpoint
-                        ctx.beginPath();
-                        ctx.arc(tip.x, tip.y, 2.8, 0, Math.PI * 2);
-                        ctx.fillStyle = w.color;
-                        ctx.fill();
-
-                        // Translucent pill badge
-                        ctx.fillStyle = 'rgba(4, 9, 22, 0.92)';
-                        ctx.strokeStyle = w.color;
-                        ctx.lineWidth = w.isUnknown ? 2 : 1.5;
-                        ctx.beginPath();
-                        ctx.roundRect(lbl.x - tw * 0.5 - padX, lbl.y - lblFont * 0.5 - padY, tw + padX * 2, lblFont + padY * 2, 7);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = w.color;
-                        ctx.shadowBlur = 8;
-                        ctx.fillText(w.text, lbl.x, lbl.y + 0.5);
-                        ctx.restore();
-                    } else {
-                        const pos = toWorld(Math.cos(w.mid) * (arm * 0.68), Math.sin(w.mid) * (arm * 0.68));
-                        ctx.save();
-                        ctx.font = `900 ${w.isUnknown ? Math.round(lblFont * 1.15) : lblFont}px "Orbitron", sans-serif`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillStyle = w.color;
-                        ctx.shadowColor = w.color;
-                        ctx.shadowBlur = 10;
-                        ctx.fillText(w.text, pos.x, pos.y);
-                        ctx.restore();
+                // Prevent the two external badges from overlapping each other & clamp gently near inner ring
+                const maxRingR = wGeo.innerR * 1.04;
+                const clampBadge = (c) => {
+                    const d = Math.hypot(c.x, c.y);
+                    if (d > maxRingR) {
+                        c.x = (c.x / d) * maxRingR;
+                        c.y = (c.y / d) * maxRingR;
                     }
+                };
+                callouts.forEach(clampBadge);
+
+                for (let iter = 0; iter < 8; iter++) {
+                    const a = callouts[0];
+                    const b = callouts[1];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const minX = a.halfW + b.halfW + 10;
+                    const minY = a.halfH + b.halfH + 8;
+                    if (Math.abs(dx) < minX && Math.abs(dy) < minY) {
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const push = 4.5;
+                        a.x -= (dx / dist) * push;
+                        a.y -= (dy / dist) * push;
+                        b.x += (dx / dist) * push;
+                        b.y += (dy / dist) * push;
+                        clampBadge(a);
+                        clampBadge(b);
+                    }
+                }
+
+                // Render dotted leader lines first, then high-contrast external pill badges on top
+                callouts.forEach((c) => {
+                    drawDottedAngleLeader(c.x, c.y, c.tip.x, c.tip.y, c.color, c.isUnknown);
+
+                    ctx.save();
+                    ctx.fillStyle = c.isUnknown && showSolved ? 'rgba(10, 32, 14, 0.95)' : 'rgba(4, 9, 22, 0.95)';
+                    ctx.strokeStyle = c.color;
+                    ctx.lineWidth = c.isUnknown ? (2.0 + pulse * 0.8) : 1.9;
+                    ctx.shadowColor = c.color;
+                    ctx.shadowBlur = c.isUnknown ? (12 + pulse * 10) : 10;
+                    ctx.beginPath();
+                    ctx.roundRect(c.x - c.halfW, c.y - c.halfH, c.halfW * 2, c.halfH * 2, 8);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.font = `900 ${c.fontPx}px "Orbitron", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = c.color;
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(c.text, c.x, c.y + 0.5);
+                    ctx.restore();
                 });
             }
 
             /**
              * Draw Triangle Sum (180°) diagram with exact Euclidean angles,
-             * crisp interior arcs, and external callout pills with leader lines
-             * pointing directly to each vertex's angle arc.
+             * crisp interior wedges/arcs, and large always-external callout pills
+             * connected by retro dotted leader lines.
              */
             function drawTriangleDiagram(wGeo, prob) {
                 const [degA, degB, degC] = prob.angles;
@@ -3187,7 +3246,7 @@
                     { x: bLen * Math.cos(radA), y: -bLen * Math.sin(radA) }
                 ];
 
-                // Center on centroid and scale comfortably so external pills have ample room inside innerR
+                // Center on centroid and scale cleanly inside the expanded Warp inner arena
                 const cx = (rawVerts[0].x + rawVerts[1].x + rawVerts[2].x) / 3;
                 const cy = (rawVerts[0].y + rawVerts[1].y + rawVerts[2].y) / 3;
                 let maxDist = 0.001;
@@ -3198,7 +3257,7 @@
                     return { x: dx, y: dy };
                 });
 
-                const scale = (wGeo.innerR * 0.49) / maxDist;
+                const scale = (wGeo.innerR * 0.55) / maxDist;
                 const cosR = Math.cos(prob.rotRad);
                 const sinR = Math.sin(prob.rotRad);
 
@@ -3214,19 +3273,20 @@
 
                 ctx.save();
 
-                // Subtle triangle fill
+                // Softly tinted triangle body
                 ctx.beginPath();
                 ctx.moveTo(verts[0].x, verts[0].y);
                 ctx.lineTo(verts[1].x, verts[1].y);
                 ctx.lineTo(verts[2].x, verts[2].y);
                 ctx.closePath();
-                ctx.fillStyle = 'rgba(0, 243, 255, 0.07)';
+                ctx.fillStyle = 'rgba(0, 243, 255, 0.08)';
                 ctx.fill();
 
-                const lblFont = Math.max(10, Math.min(15, Math.round(wGeo.R * 0.048)));
+                // Large font matching the 6 lane candidate answer badges
+                const baseFont = Math.max(14, Math.min(21, Math.round(wGeo.R * 0.066)));
                 const callouts = [];
 
-                // 1. Draw interior angle arcs & compute initial external callout positions
+                // 1. Draw interior angle wedges/arcs & compute initial external callout positions
                 for (let i = 0; i < 3; i++) {
                     const v = verts[i];
                     const prev = verts[(i + 2) % 3];
@@ -3251,17 +3311,16 @@
                     const outAng = mid + Math.PI;           // Outward bisector (away from triangle interior)
 
                     const deg = prob.angles[i];
-                    // Slightly larger arc radius for narrow angles so the arc stays crisp and legible
-                    const desiredArcR = wGeo.innerR * (deg < 38 ? 0.21 : 0.165);
-                    const arcR = Math.min(desiredArcR, minEdge * 0.44);
+                    const desiredArcR = wGeo.innerR * (deg < 38 ? 0.24 : 0.19);
+                    const arcR = Math.min(desiredArcR, minEdge * 0.45);
 
                     const isUnknown = i === 2;
-                    const col = isUnknown ? '#ffe600' : '#00f3ff';
+                    const col = isUnknown ? (showSolved ? '#39ff14' : '#ffe600') : '#00f3ff';
                     const fill = isUnknown
-                        ? `rgba(255, 230, 0, ${showSolved ? 0.36 : 0.20 + pulse * 0.16})`
+                        ? (showSolved ? 'rgba(57, 255, 20, 0.36)' : `rgba(255, 230, 0, ${0.20 + pulse * 0.16})`)
                         : 'rgba(0, 243, 255, 0.24)';
 
-                    // Filled angle wedge
+                    // Filled interior angle wedge
                     ctx.beginPath();
                     ctx.moveTo(v.x, v.y);
                     ctx.arc(v.x, v.y, arcR, start, end, false);
@@ -3273,28 +3332,28 @@
                     ctx.beginPath();
                     ctx.arc(v.x, v.y, arcR, start, end, false);
                     ctx.strokeStyle = col;
-                    ctx.lineWidth = isUnknown ? 2.8 : 2.3;
+                    ctx.lineWidth = isUnknown ? 2.8 : 2.4;
                     ctx.shadowColor = col;
                     ctx.shadowBlur = isUnknown ? (10 + pulse * 10) : 10;
                     ctx.stroke();
 
-                    // Arc midpoint where the leader line + glowing dot will attach
+                    // Exact interior arc point where the dotted leader line + dot terminates
                     const arcTip = {
-                        x: v.x + Math.cos(mid) * (arcR * 0.72),
-                        y: v.y + Math.sin(mid) * (arcR * 0.72)
+                        x: v.x + Math.cos(mid) * (arcR * 0.68),
+                        y: v.y + Math.sin(mid) * (arcR * 0.68)
                     };
 
                     const txt = isUnknown ? (showSolved ? `${degC}°` : '?') : `${deg}°`;
-                    const fontPx = isUnknown ? Math.round(lblFont * 1.1) : lblFont;
+                    const fontPx = isUnknown && !showSolved ? Math.round(baseFont * 1.12) : baseFont;
                     ctx.font = `900 ${fontPx}px "Orbitron", sans-serif`;
                     const tw = ctx.measureText(txt).width;
-                    const padX = isUnknown && !showSolved ? 9 : 7;
-                    const padY = 4.5;
+                    const padX = isUnknown && !showSolved ? 11 : 8.5;
+                    const padY = 5;
                     const halfW = tw * 0.5 + padX;
                     const halfH = fontPx * 0.5 + padY;
 
-                    // Place pill cleanly outside the vertex along the outward bisector
-                    const outwardOffset = Math.max(wGeo.innerR * 0.24, Math.hypot(halfW, halfH) + 8);
+                    // Place pill cleanly outside the vertex along its outward bisector
+                    const outwardOffset = Math.max(wGeo.innerR * 0.30, Math.hypot(halfW, halfH) + 12);
                     const lx = v.x + Math.cos(outAng) * outwardOffset;
                     const ly = v.y + Math.sin(outAng) * outwardOffset;
 
@@ -3314,30 +3373,30 @@
                     });
                 }
 
-                // 2. Clamp pills inside the inner hexagonal web ring & separate if any two get close
-                const maxRingR = wGeo.innerR * 0.84;
+                // 2. Gentle ring clamp (allows straddling the inner ring edge cleanly) + collision avoidance
+                const maxRingR = wGeo.innerR * 1.05;
                 const clampPill = (c) => {
                     const effR = Math.hypot(c.x, c.y);
-                    const limit = Math.max(wGeo.innerR * 0.45, maxRingR - Math.max(c.halfW * 0.72, c.halfH * 0.85));
-                    if (effR > limit) {
-                        c.x = (c.x / effR) * limit;
-                        c.y = (c.y / effR) * limit;
+                    if (effR > maxRingR) {
+                        c.x = (c.x / effR) * maxRingR;
+                        c.y = (c.y / effR) * maxRingR;
                     }
                 };
 
                 callouts.forEach(clampPill);
-                for (let iter = 0; iter < 6; iter++) {
+                for (let iter = 0; iter < 10; iter++) {
+                    // Separate any pills that get too close to each other
                     for (let i = 0; i < 3; i++) {
                         for (let j = i + 1; j < 3; j++) {
                             const a = callouts[i];
                             const b = callouts[j];
                             const dx = b.x - a.x;
                             const dy = b.y - a.y;
-                            const minX = a.halfW + b.halfW + 6;
-                            const minY = a.halfH + b.halfH + 6;
+                            const minX = a.halfW + b.halfW + 10;
+                            const minY = a.halfH + b.halfH + 8;
                             if (Math.abs(dx) < minX && Math.abs(dy) < minY) {
                                 const dist = Math.hypot(dx, dy) || 1;
-                                const push = 3.5;
+                                const push = 4.5;
                                 a.x -= (dx / dist) * push;
                                 a.y -= (dy / dist) * push;
                                 b.x += (dx / dist) * push;
@@ -3347,51 +3406,45 @@
                             }
                         }
                     }
+                    // Ensure no pill drifts back over its own vertex
+                    for (let i = 0; i < 3; i++) {
+                        const c = callouts[i];
+                        const dx = c.x - c.vx;
+                        const dy = c.y - c.vy;
+                        const dist = Math.hypot(dx, dy) || 1;
+                        const minClear = Math.max(c.halfW, c.halfH) + 12;
+                        if (dist < minClear) {
+                            c.x = c.vx + (dx / dist) * minClear;
+                            c.y = c.vy + (dy / dist) * minClear;
+                            clampPill(c);
+                        }
+                    }
                 }
 
-                // 3. Crisp Neon Triangle Outline (drawn over arcs, under leader dots/pills)
+                // 3. Crisp Neon Triangle Outline (drawn over wedges, under dotted leaders & pills)
                 ctx.beginPath();
                 ctx.moveTo(verts[0].x, verts[0].y);
                 ctx.lineTo(verts[1].x, verts[1].y);
                 ctx.lineTo(verts[2].x, verts[2].y);
                 ctx.closePath();
                 ctx.strokeStyle = '#e8f9ff';
-                ctx.lineWidth = 2.8;
+                ctx.lineWidth = 3.0;
                 ctx.lineJoin = 'round';
                 ctx.shadowColor = '#00f3ff';
                 ctx.shadowBlur = 12;
                 ctx.stroke();
 
-                // 4. Draw leader lines, glowing arc-tip dots, and external upright pills
+                // 4. Draw retro dotted leader lines, glowing arc-tip dots, and large external pill badges
                 callouts.forEach((c) => {
+                    drawDottedAngleLeader(c.x, c.y, c.arcTip.x, c.arcTip.y, c.col, c.isUnknown);
+
                     ctx.save();
-
-                    // Leader line from pill center to the midpoint of the interior angle arc
-                    ctx.beginPath();
-                    ctx.moveTo(c.x, c.y);
-                    ctx.lineTo(c.arcTip.x, c.arcTip.y);
+                    // Dark translucent pill with crisp glowing border (cleanly masks leader start)
+                    ctx.fillStyle = c.isUnknown && showSolved ? 'rgba(10, 32, 14, 0.95)' : 'rgba(4, 9, 22, 0.95)';
                     ctx.strokeStyle = c.col;
-                    ctx.lineWidth = c.isUnknown ? 1.9 : 1.5;
-                    ctx.globalAlpha = 0.88;
+                    ctx.lineWidth = c.isUnknown ? (2.0 + pulse * 0.8) : 1.9;
                     ctx.shadowColor = c.col;
-                    ctx.shadowBlur = 8;
-                    ctx.stroke();
-
-                    // Glowing dot at the interior arc midpoint
-                    ctx.globalAlpha = 1;
-                    ctx.beginPath();
-                    ctx.arc(c.arcTip.x, c.arcTip.y, c.isUnknown ? 3.1 : 2.6, 0, Math.PI * 2);
-                    ctx.fillStyle = c.col;
-                    ctx.shadowColor = c.col;
-                    ctx.shadowBlur = 10;
-                    ctx.fill();
-
-                    // Dark translucent pill with crisp colored border (masks leader start cleanly)
-                    ctx.fillStyle = 'rgba(4, 9, 22, 0.93)';
-                    ctx.strokeStyle = c.col;
-                    ctx.lineWidth = c.isUnknown ? (1.8 + pulse * 0.8) : 1.6;
-                    ctx.shadowColor = c.col;
-                    ctx.shadowBlur = c.isUnknown ? (10 + pulse * 10) : 9;
+                    ctx.shadowBlur = c.isUnknown ? (12 + pulse * 10) : 10;
                     ctx.beginPath();
                     ctx.roundRect(c.x - c.halfW, c.y - c.halfH, c.halfW * 2, c.halfH * 2, 8);
                     ctx.fill();
@@ -3401,8 +3454,8 @@
                     ctx.font = `900 ${c.fontPx}px "Orbitron", sans-serif`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillStyle = c.isUnknown && showSolved ? '#39ff14' : c.col;
-                    ctx.shadowColor = c.isUnknown && showSolved ? '#39ff14' : c.col;
+                    ctx.fillStyle = c.col;
+                    ctx.shadowColor = c.col;
                     ctx.shadowBlur = 8;
                     ctx.fillText(c.txt, c.x, c.y + 0.5);
 
